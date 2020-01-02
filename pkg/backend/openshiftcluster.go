@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 
@@ -232,9 +233,11 @@ func (ocb *openShiftClusterBackend) endLease(stop func(), doc *api.OpenShiftClus
 // End to end state change flow should be:
 // Creating -> Deleting -> Failed -> Deleting
 func (ocb *openShiftClusterBackend) handleDelete(cancel context.CancelFunc, doc *api.OpenShiftClusterDocument) error {
+	ocb.baseLog.Print("handle delete")
 	cancel()
 	return wait.PollImmediate(time.Second, time.Minute*5, func() (bool, error) {
 		var err error
+		failed := false
 		doc, err = ocb.db.OpenShiftClusters.Get(doc.Key)
 		if err != nil {
 			return false, err
@@ -242,14 +245,21 @@ func (ocb *openShiftClusterBackend) handleDelete(cancel context.CancelFunc, doc 
 		switch doc.OpenShiftCluster.Properties.ProvisioningState {
 		case api.ProvisioningStateCreating:
 			return false, err
+		case api.ProvisioningStateDeleting:
+			if failed {
+				spew.Dump("handle delete done")
+				return true, nil
+			}
 		case api.ProvisioningStateFailed:
 			err := ocb.updateAsyncOperation(doc.AsyncOperationID, doc.OpenShiftCluster, api.ProvisioningStateDeleting, "")
 			if err != nil {
 				return false, err
 			}
+			failed = true
 			return true, nil
 		default:
 			return false, nil
 		}
+		return true, nil
 	})
 }

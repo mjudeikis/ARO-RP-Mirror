@@ -257,5 +257,6 @@ func (d *dev) CreateARMResourceGroupRoleAssignment(ctx context.Context, fpAuthor
 	}
 
 	d.log.Print("development mode: refreshing authorizer")
+	time.Sleep(time.Second * 5)
 	return fpAuthorizer.(*refreshableAuthorizer).Refresh()
 }
