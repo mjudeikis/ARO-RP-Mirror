@@ -134,8 +134,8 @@ func (ocb *openShiftClusterBackend) heartbeat(cancel context.CancelFunc, log *lo
 		for {
 			_, err := ocb.db.OpenShiftClusters.Lease(doc.Key)
 			if err != nil {
-				cancel()
 				log.Error(err)
+				cancel()
 				return
 			}
 
