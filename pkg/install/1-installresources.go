@@ -24,6 +24,7 @@ import (
 	"github.com/openshift/installer/pkg/asset/ignition/machine"
 	"github.com/openshift/installer/pkg/asset/installconfig"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/Azure/ARO-RP/pkg/api"
@@ -31,7 +32,6 @@ import (
 	"github.com/Azure/ARO-RP/pkg/util/azureclient/graphrbac"
 	"github.com/Azure/ARO-RP/pkg/util/restconfig"
 	"github.com/Azure/ARO-RP/pkg/util/subnet"
-	"github.com/Azure/ARO-RP/pkg/util/wait"
 )
 
 func (i *Installer) installResources(ctx context.Context) error {
@@ -717,14 +717,17 @@ func (i *Installer) installResources(ctx context.Context) error {
 		}
 
 		i.log.Print("waiting for bootstrap configmap")
-		err = wait.PollImmediateWithContext(10*time.Second, 30*time.Minute, func() (bool, error) {
+		timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+		err = wait.PollImmediateUntil(10*time.Second, func() (bool, error) {
 			cm, err := cli.CoreV1().ConfigMaps("kube-system").Get("bootstrap", metav1.GetOptions{})
 			return err == nil && cm.Data["status"] == "complete", nil
 
-		}, ctx.Done())
+		}, timeoutCtx.Done())
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }

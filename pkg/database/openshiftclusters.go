@@ -144,9 +144,6 @@ func (c *openShiftClusters) patch(key string, f func(*api.OpenShiftClusterDocume
 }
 
 func (c *openShiftClusters) Update(doc *api.OpenShiftClusterDocument) (*api.OpenShiftClusterDocument, error) {
-	if doc.LeaseOwner != c.uuid {
-		return nil, fmt.Errorf("lost lease")
-	}
 	return c.update(doc, nil)
 }
 

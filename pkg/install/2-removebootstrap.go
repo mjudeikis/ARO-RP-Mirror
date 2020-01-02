@@ -14,13 +14,13 @@ import (
 	"github.com/openshift/installer/pkg/asset/installconfig"
 	"github.com/openshift/installer/pkg/asset/password"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
 
 	"github.com/Azure/ARO-RP/pkg/api"
 	"github.com/Azure/ARO-RP/pkg/util/restconfig"
-	"github.com/Azure/ARO-RP/pkg/util/wait"
 )
 
 func (i *Installer) removeBootstrap(ctx context.Context) error {
@@ -76,7 +76,9 @@ func (i *Installer) removeBootstrap(ctx context.Context) error {
 		}
 
 		i.log.Print("waiting for version clusterversion")
-		err = wait.PollImmediateWithContext(10*time.Second, 30*time.Minute, func() (bool, error) {
+		timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+		err = wait.PollImmediateUntil(10*time.Second, func() (bool, error) {
 			cv, err := cli.ConfigV1().ClusterVersions().Get("version", metav1.GetOptions{})
 			if err == nil {
 				for _, cond := range cv.Status.Conditions {
@@ -87,7 +89,7 @@ func (i *Installer) removeBootstrap(ctx context.Context) error {
 			}
 			return false, nil
 
-		}, ctx.Done())
+		}, timeoutCtx.Done())
 		if err != nil {
 			return err
 		}
