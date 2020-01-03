@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 
@@ -54,7 +55,6 @@ func (ocb *openShiftClusterBackend) try() (bool, error) {
 		if err != nil {
 			log.Error(err)
 		}
-
 		log.WithField("durationMs", int(time.Now().Sub(t)/time.Millisecond)).Print("done")
 	}()
 
@@ -74,7 +74,7 @@ func (ocb *openShiftClusterBackend) handle(ctx context.Context, log *logrus.Entr
 		log.Error(err)
 		return ocb.endLease(stop, doc, api.ProvisioningStateFailed)
 	}
-
+	currentState := doc.OpenShiftCluster.Properties.ProvisioningState
 	switch doc.OpenShiftCluster.Properties.ProvisioningState {
 	case api.ProvisioningStateCreating:
 		log.Print("creating")
@@ -82,7 +82,8 @@ func (ocb *openShiftClusterBackend) handle(ctx context.Context, log *logrus.Entr
 		err = m.Create(ctx)
 		if err != nil {
 			log.Error(err)
-			return ocb.endLease(stop, doc, api.ProvisioningStateFailed)
+			ocb.updateState(state)
+			return ocb.endLease(stop, doc, api.ProvisioningStateFailed, expectedState)
 		}
 
 		return ocb.endLease(stop, doc, api.ProvisioningStateSucceeded)
@@ -137,19 +138,16 @@ func (ocb *openShiftClusterBackend) heartbeat(cancel context.CancelFunc, log *lo
 			current, err := ocb.db.OpenShiftClusters.Get(doc.Key)
 			if err != nil {
 				log.Error(err)
-			} else {
-				// If current document, we are working on is not in Deleting
-				// but frontend updated to delete it - cancel and release
-				if doc.OpenShiftCluster.Properties.ProvisioningState != api.ProvisioningStateDeleting &&
-					current.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateDeleting {
-					err := ocb.handleDelete(cancel, doc)
-					if err != nil {
-						log.Error(err)
-						return
-					}
-					return
-				}
+				return
 			}
+			// If current document, we are working on is not in Deleting
+			// but frontend updated to delete it - cancel and release
+			if doc.OpenShiftCluster.Properties.ProvisioningState != api.ProvisioningStateDeleting &&
+				current.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateDeleting {
+				cancel()
+				go ocb.handleDelete(current)
+			}
+
 			_, err = ocb.db.OpenShiftClusters.Lease(doc.Key)
 			if err != nil {
 				cancel()
@@ -208,11 +206,11 @@ func (ocb *openShiftClusterBackend) updateAsyncOperation(id string, oc *api.Open
 	return nil
 }
 
-func (ocb *openShiftClusterBackend) endLease(stop func(), doc *api.OpenShiftClusterDocument, provisioningState api.ProvisioningState) error {
-	var failedProvisioningState api.ProvisioningState
-	if provisioningState == api.ProvisioningStateFailed {
-		failedProvisioningState = doc.OpenShiftCluster.Properties.ProvisioningState
-	}
+func (ocb *openShiftClusterBackend) endLease(stop func(), doc *api.OpenShiftClusterDocument, provisioningState api.ProvisioningState, currentExpected api.ProvisioningState) error {
+	//var failedProvisioningState api.ProvisioningState
+	//if provisioningState == api.ProvisioningStateFailed {
+	//	failedProvisioningState = doc.OpenShiftCluster.Properties.ProvisioningState
+	//}
 
 	err := ocb.updateAsyncOperation(doc.AsyncOperationID, doc.OpenShiftCluster, provisioningState, failedProvisioningState)
 	if err != nil {
@@ -223,7 +221,8 @@ func (ocb *openShiftClusterBackend) endLease(stop func(), doc *api.OpenShiftClus
 		stop()
 	}
 
-	_, err = ocb.db.OpenShiftClusters.EndLease(doc.Key, provisioningState, failedProvisioningState)
+	// get from the document in the patch in db layer
+	_, err = ocb.db.OpenShiftClusters.EndLease(doc.Key, provisioningState, currentExpected)
 	return err
 }
 
@@ -232,34 +231,30 @@ func (ocb *openShiftClusterBackend) endLease(stop func(), doc *api.OpenShiftClus
 // as Failed. We need to wait for it and update to Deleting.
 // End to end state change flow should be:
 // Creating -> Deleting -> Failed -> Deleting
-func (ocb *openShiftClusterBackend) handleDelete(cancel context.CancelFunc, doc *api.OpenShiftClusterDocument) error {
+func (ocb *openShiftClusterBackend) handleDelete(doc *api.OpenShiftClusterDocument) {
 	ocb.baseLog.Print("handle delete")
-	cancel()
-	return wait.PollImmediate(time.Second, time.Minute*5, func() (bool, error) {
-		var err error
-		failed := false
-		doc, err = ocb.db.OpenShiftClusters.Get(doc.Key)
+	err := ocb.updateAsyncOperation(doc.AsyncOperationID, nil, api.ProvisioningStateDeleting, "")
+	if err != nil {
+		ocb.baseLog.Error(err)
+	}
+
+	// we can skip failed state if backends cancels in order
+	err = wait.Poll(time.Millisecond*500, time.Minute, func() (bool, error) {
+		current, err := ocb.db.OpenShiftClusters.Get(doc.Key)
 		if err != nil {
 			return false, err
 		}
-		switch doc.OpenShiftCluster.Properties.ProvisioningState {
-		case api.ProvisioningStateCreating:
-			return false, err
-		case api.ProvisioningStateDeleting:
-			if failed {
-				spew.Dump("handle delete done")
-				return true, nil
-			}
-		case api.ProvisioningStateFailed:
-			err := ocb.updateAsyncOperation(doc.AsyncOperationID, doc.OpenShiftCluster, api.ProvisioningStateDeleting, "")
+		spew.Dump(current.OpenShiftCluster.Properties.ProvisioningState)
+		if current.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateFailed {
+			err = ocb.updateAsyncOperation(doc.AsyncOperationID, doc.OpenShiftCluster, api.ProvisioningStateDeleting, "")
 			if err != nil {
-				return false, err
+				ocb.baseLog.Error(err)
 			}
-			failed = true
 			return true, nil
-		default:
-			return false, nil
 		}
-		return true, nil
+		return false, nil
 	})
+	if err != nil {
+		ocb.baseLog.Error(err)
+	}
 }

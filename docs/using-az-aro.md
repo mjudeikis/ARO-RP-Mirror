@@ -81,7 +81,7 @@ cluster:
    ```
    LOCATION=eastus
    RESOURCEGROUP="v4-$LOCATION"
-   CLUSTER=cluster
+   CLUSTER=mjudeikis-cluster
 
    az group create -g "$RESOURCEGROUP" -l $LOCATION
    az network vnet create \

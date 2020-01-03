@@ -29,7 +29,7 @@ type OpenShiftClusters interface {
 	ListByPrefix(string, string) (cosmosdb.OpenShiftClusterDocumentIterator, error)
 	Dequeue() (*api.OpenShiftClusterDocument, error)
 	Lease(string) (*api.OpenShiftClusterDocument, error)
-	EndLease(string, api.ProvisioningState, api.ProvisioningState) (*api.OpenShiftClusterDocument, error)
+	EndLease(string) (*api.OpenShiftClusterDocument, error)
 }
 
 // NewOpenShiftClusters returns a new OpenShiftClusters
@@ -217,19 +217,23 @@ func (c *openShiftClusters) Lease(key string) (*api.OpenShiftClusterDocument, er
 	}, &cosmosdb.Options{PreTriggers: []string{"renewLease"}})
 }
 
-func (c *openShiftClusters) EndLease(key string, provisioningState, failedProvisioningState api.ProvisioningState) (*api.OpenShiftClusterDocument, error) {
+func (c *openShiftClusters) EndLease(key string, success bool) (*api.OpenShiftClusterDocument, error) {
 	return c.patch(key, func(doc *api.OpenShiftClusterDocument) error {
 		if doc.LeaseOwner != c.uuid {
 			return fmt.Errorf("lost lease")
 		}
 
-		doc.OpenShiftCluster.Properties.ProvisioningState = provisioningState
-		doc.OpenShiftCluster.Properties.FailedProvisioningState = failedProvisioningState
+		// if "creating == creating" - failure true
+		// else - force delete
+		if doc.OpenShiftCluster.Properties.ProvisioningState == expectedState {
+			doc.OpenShiftCluster.Properties.ProvisioningState = provisioningState
+			doc.OpenShiftCluster.Properties.FailedProvisioningState = failedProvisioningState
+		}
 
 		doc.LeaseOwner = ""
 		doc.LeaseExpires = 0
 
-		if provisioningState == api.ProvisioningStateSucceeded {
+		if doc.OpenShiftCluster.Properties.ProvisioningState != api.FailedProvisioningState {
 			doc.Dequeues = 0
 		}
 
