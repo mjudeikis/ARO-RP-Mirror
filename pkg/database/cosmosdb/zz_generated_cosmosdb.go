@@ -122,6 +122,7 @@ func (c *databaseClient) _do(ctx context.Context, method, path, resourceType, re
 		resp.Body.Close()
 	}()
 
+	fmt.Fprintln(os.Stderr, resp.Header.Get("x-ms-request-charge"))
 
 	d := codec.NewDecoder(resp.Body, c.jsonHandle)
 
