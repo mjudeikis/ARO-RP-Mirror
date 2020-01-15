@@ -21,16 +21,18 @@ type Collection struct {
 	Conflicts                string                    `json:"_conflicts,omitempty"`
 	IndexingPolicy           *IndexingPolicy           `json:"indexingPolicy,omitempty"`
 	PartitionKey             *PartitionKey             `json:"partitionKey,omitempty"`
+	UniqueKeyPolicy          *UniqueKeyPolicy          `json:"uniqueKeyPolicy,omitempty"`
 	ConflictResolutionPolicy *ConflictResolutionPolicy `json:"conflictResolutionPolicy,omitempty"`
 	GeospatialConfig         *GeospatialConfig         `json:"geospatialConfig,omitempty"`
 }
 
 // IndexingPolicy represents an indexing policy
 type IndexingPolicy struct {
-	Automatic     bool               `json:"automatic,omitempty"`
-	IndexingMode  IndexingPolicyMode `json:"indexingMode,omitempty"`
-	IncludedPaths []IncludedPath     `json:"includedPaths,omitempty"`
-	ExcludedPaths []IncludedPath     `json:"excludedPaths,omitempty"`
+	Automatic        bool               `json:"automatic,omitempty"`
+	IndexingMode     IndexingPolicyMode `json:"indexingMode,omitempty"`
+	IncludedPaths    []IncludedPath     `json:"includedPaths,omitempty"`
+	ExcludedPaths    []IncludedPath     `json:"excludedPaths,omitempty"`
+	CompositeIndexes []CompositeIndex   `json:"compositeIndexes,omitempty"`
 }
 
 // IndexingPolicyMode represents an indexing policy mode
@@ -82,6 +84,18 @@ type ExcludedPath struct {
 	Path string `json:"path,omitempty"`
 }
 
+type CompositeIndex []struct {
+	Path  string `json:"path,omitempty"`
+	Order Order  `json:"order,omitempty"`
+}
+
+type Order string
+
+const (
+	OrderAscending  Order = "ascending"
+	OrderDescending Order = "descending"
+)
+
 // PartitionKey represents a partition key
 type PartitionKey struct {
 	Paths   []string         `json:"paths,omitempty"`
@@ -96,6 +110,14 @@ type PartitionKeyKind string
 const (
 	PartitionKeyKindHash PartitionKeyKind = "Hash"
 )
+
+type UniqueKeyPolicy struct {
+	UniqueKeys []UniqueKey `json:"uniqueKeys,omitempty"`
+}
+
+type UniqueKey struct {
+	Paths []string `json:"paths,omitempty"`
+}
 
 // ConflictResolutionPolicy represents a conflict resolution policy
 type ConflictResolutionPolicy struct {
