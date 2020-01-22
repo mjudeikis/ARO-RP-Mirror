@@ -4,47 +4,60 @@ package api
 // Licensed under the Apache License 2.0.
 
 import (
-	"reflect"
+	"fmt"
+	"go/types"
+	"strings"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
+
+	"golang.org/x/tools/go/packages"
 )
 
 func TestMissingFields(t *testing.T) {
-	result := finder(reflect.ValueOf(OpenShiftCluster{}), make(map[string]bool))
-	for k, v := range result {
-		if !v {
-			t.Errorf("structure %s missing MissingFields field", k)
+	pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedSyntax | packages.NeedTypes | packages.NeedTypesInfo}, "github.com/Azure/ARO-RP/pkg/api")
+	if err != nil {
+		t.Error(err)
+	}
+	if len(pkgs) != 1 {
+		t.Errorf("found %d packages, expected 1", len(pkgs))
+	}
+
+	for _, d := range pkgs[0].Types.Scope().Names() {
+		if strings.HasSuffix(d, "Document") {
+			spew.Dump("-------------------------------------------")
+			err := finder(*pkgs[0], d)
+			if err != nil {
+				t.Error(err)
+			}
 		}
 	}
 }
 
-func finder(v reflect.Value, found map[string]bool) map[string]bool {
-	var finder func(reflect.Value, map[string]bool) map[string]bool
-
-	finder = func(v reflect.Value, found map[string]bool) map[string]bool {
-		// Drill down through pointers and interfaces to get a value we can print.
-		for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
-			v = v.Elem()
+func finder(pkg packages.Package, t string) error {
+	var finder func(string, map[string]bool) error
+	visited := make(map[string]bool)
+	finder = func(t string, visited map[string]bool) error {
+		spew.Dump("Visiting : " + t)
+		visited[t] = true
+		o := pkg.Types.Scope().Lookup(t)
+		// TODO: Type case somewhere here
+		if !o.Exported() {
+			return nil
 		}
-
-		switch v.Kind() {
-		case reflect.Slice, reflect.Array:
-			for i := 0; i < v.Len(); i++ {
-				found = finder(v.Index(i), found)
+		if s, ok := o.Type().Underlying().(*types.Struct); ok {
+			if o.Name() != "MissingFields" && s.Field(0).Name() != "MissingFields" {
+				return fmt.Errorf("missing fields not found in " + o.Name())
 			}
-		case reflect.Struct:
-			t := v.Type()
-			for i := 0; i < t.NumField(); i++ {
-				if t.Field(i).Name == "MissingFields" {
-					found[t.Name()] = true
+			for f := 0; f < s.NumFields(); f++ {
+				err := finder(s.Field(f).Name(), visited)
+				if err != nil {
+					return err
 				}
-				found = finder(v.Field(i), found)
 			}
-			if _, ok := found[t.Name()]; !ok && t.Name() != "MissingFields" {
-				found[t.Name()] = false
-			}
-		default:
 		}
-		return found
+		return nil
 	}
-	return finder(v, found)
+	return finder(t, visited)
+
 }
