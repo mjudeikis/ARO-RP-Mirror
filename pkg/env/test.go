@@ -25,6 +25,7 @@ type Test struct {
 	TestResourceGroup  string
 	TestDomain         string
 	TestVNetName       string
+	TestPeVNetName     string
 
 	TLSKey   *rsa.PrivateKey
 	TLSCerts []*x509.Certificate
@@ -76,8 +77,4 @@ func (t *Test) ResourceGroup() string {
 
 func (t *Test) SubscriptionID() string {
 	return t.TestSubscriptionID
-}
-
-func (t *Test) VnetName() string {
-	return t.TestVNetName
 }

@@ -31,7 +31,6 @@ type Interface interface {
 	GetSecret(context.Context, string) (*rsa.PrivateKey, []*x509.Certificate, error)
 	ManagedDomain(string) (string, error)
 	Listen() (net.Listener, error)
-	VnetName() string
 	Zones(vmSize string) ([]string, error)
 }
 
