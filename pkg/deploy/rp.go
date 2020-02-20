@@ -270,6 +270,9 @@ EOF
 
 yum -y install azsec-clamav azsec-monitor azure-mdsd azure-security podman-docker
 
+# https://bugzilla.redhat.com/show_bug.cgi?id=1805212
+yum downgrade podman-1.4.2 -y
+
 firewall-cmd --add-port=443/tcp --permanent
 
 if [[ -n "$RPIMAGEAUTH" ]]; then
