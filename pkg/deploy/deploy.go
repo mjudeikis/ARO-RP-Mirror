@@ -5,7 +5,6 @@ package deploy
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -64,9 +63,6 @@ func New(ctx context.Context, log *logrus.Entry, authorizer autorest.Authorizer,
 
 	d.cli = &http.Client{
 		Timeout: 5 * time.Second,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
 	}
 
 	d.deployments = resources.NewDeploymentsClient(d.subscriptionID, authorizer)
