@@ -278,6 +278,7 @@ func (c *openShiftClusters) EndLease(ctx context.Context, key string, provisioni
 		doc.OpenShiftCluster.Properties.ProvisioningState = provisioningState
 		doc.OpenShiftCluster.Properties.FailedProvisioningState = failedProvisioningState
 
+		doc.CorrelationID = ""
 		doc.LeaseOwner = ""
 		doc.LeaseExpires = 0
 

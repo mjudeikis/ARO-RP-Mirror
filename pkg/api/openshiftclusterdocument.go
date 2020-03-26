@@ -37,6 +37,7 @@ type OpenShiftClusterDocument struct {
 	Dequeues     int    `json:"dequeues,omitempty"`
 
 	AsyncOperationID string `json:"asyncOperationId,omitempty"`
+	CorrelationID    string `json:"correlationId,omitempty"`
 
 	OpenShiftCluster *OpenShiftCluster `json:"openShiftCluster,omitempty"`
 }

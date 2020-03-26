@@ -38,6 +38,7 @@ func (ocb *openShiftClusterBackend) try(ctx context.Context) (bool, error) {
 	}
 
 	log := ocb.baseLog.WithFields(logrus.Fields{
+		"correlation_id":  doc.CorrelationID,
 		"resource_id":     doc.OpenShiftCluster.ID,
 		"subscription_id": r.SubscriptionID,
 		"resource_group":  r.ResourceGroup,

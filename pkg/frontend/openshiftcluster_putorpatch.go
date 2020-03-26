@@ -41,6 +41,7 @@ func (f *frontend) putOrPatchOpenShiftCluster(w http.ResponseWriter, r *http.Req
 
 func (f *frontend) _putOrPatchOpenShiftCluster(ctx context.Context, r *http.Request, header *http.Header, converter api.OpenShiftClusterConverter, staticValidator api.OpenShiftClusterStaticValidator) ([]byte, error) {
 	body := r.Context().Value(middleware.ContextKeyBody).([]byte)
+	correlationID := r.Context().Value(middleware.ContextKeyCorrelationID).(string)
 
 	subdoc, err := f.validateSubscriptionState(ctx, r.URL.Path, api.SubscriptionStateRegistered)
 	if err != nil {
@@ -62,8 +63,9 @@ func (f *frontend) _putOrPatchOpenShiftCluster(ctx context.Context, r *http.Requ
 		}
 
 		doc = &api.OpenShiftClusterDocument{
-			ID:  uuid.NewV4().String(),
-			Key: r.URL.Path,
+			ID:            uuid.NewV4().String(),
+			Key:           r.URL.Path,
+			CorrelationID: correlationID,
 			OpenShiftCluster: &api.OpenShiftCluster{
 				ID:   originalPath,
 				Name: originalR.ResourceName,
