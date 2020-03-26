@@ -67,6 +67,7 @@ func Log(baseLog *logrus.Entry) func(http.Handler) http.Handler {
 			log := baseLog.WithFields(fields)
 
 			r = r.WithContext(context.WithValue(r.Context(), ContextKeyLog, log))
+			r = r.WithContext(context.WithValue(r.Context(), ContextKeyCorrelationID, correlationID))
 
 			defer func() {
 				log.WithFields(logrus.Fields{
