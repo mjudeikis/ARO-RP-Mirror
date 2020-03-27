@@ -22,48 +22,54 @@ import (
 
 // PreDeploy deploys managed identity, NSGs and keyvaults, needed for main
 // deployment
-func (d *deployer) PreDeploy(ctx context.Context) (string, error) {
+func (d *deployer) PreDeploy(ctx context.Context) error {
 	// deploy global rbac
 	err := d.deployGlobalSubscription(ctx)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	_, err = d.groups.CreateOrUpdate(ctx, d.config.ResourceGroupName, mgmtresources.Group{
 		Location: &d.config.Location,
 	})
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	// deploy managed identity if needed and get rpServicePrincipalID
-	rpServicePrincipalID, err := d.deployManageIdentity(ctx)
+	err = d.deployManageIdentity(ctx)
 	if err != nil {
-		return "", err
+		return err
+	}
+
+	rpServicePrincipalID, err := d.getRpServicePrincipalID(ctx)
+	if err != nil {
+		return err
 	}
 
 	err = d.deployGlobal(ctx, rpServicePrincipalID)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// deploy NSGs, keyvaults
 	err = d.deployPreDeploy(ctx, rpServicePrincipalID)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	err = d.configureServiceKV(ctx)
+	return d.configureServiceKV(ctx)
+}
+
+func (d *deployer) getRpServicePrincipalID(ctx context.Context) (string, error) {
+	deployment, err := d.deployments.Get(ctx, d.config.ResourceGroupName, rpManagedIdentityDeploymentName)
 	if err != nil {
 		return "", err
 	}
 
-	return rpServicePrincipalID, nil
+	return deployment.Properties.Outputs.(map[string]interface{})["rpServicePrincipalId"].(map[string]interface{})["value"].(string), nil
 }
 
 func (d *deployer) deployGlobal(ctx context.Context, rpServicePrincipalID string) error {
-	deploymentName := "rp-global"
-
 	b, err := Asset(generator.FileRPProductionGlobal)
 	if err != nil {
 		return err
@@ -83,8 +89,8 @@ func (d *deployer) deployGlobal(ctx context.Context, rpServicePrincipalID string
 		Value: rpServicePrincipalID,
 	}
 
-	d.log.Infof("deploying %s", deploymentName)
-	return d.globaldeployments.CreateOrUpdateAndWait(ctx, d.config.Configuration.GlobalResourceGroupName, deploymentName, mgmtresources.Deployment{
+	d.log.Infof("deploying %s", globalRPDeploymentName)
+	return d.globaldeployments.CreateOrUpdateAndWait(ctx, d.config.Configuration.GlobalResourceGroupName, globalRPDeploymentName, mgmtresources.Deployment{
 		Properties: &mgmtresources.DeploymentProperties{
 			Template:   template,
 			Mode:       mgmtresources.Incremental,
@@ -94,8 +100,6 @@ func (d *deployer) deployGlobal(ctx context.Context, rpServicePrincipalID string
 }
 
 func (d *deployer) deployGlobalSubscription(ctx context.Context) error {
-	deploymentName := "rp-global-subscription"
-
 	b, err := Asset(generator.FileRPProductionGlobalSubscription)
 	if err != nil {
 		return err
@@ -107,8 +111,8 @@ func (d *deployer) deployGlobalSubscription(ctx context.Context) error {
 		return err
 	}
 
-	d.log.Infof("deploying %s", deploymentName)
-	return d.globaldeployments.CreateOrUpdateAtSubscriptionScopeAndWait(ctx, deploymentName, mgmtresources.Deployment{
+	d.log.Infof("deploying %s", globalRPSubscriptionDeploymentName)
+	return d.globaldeployments.CreateOrUpdateAtSubscriptionScopeAndWait(ctx, globalRPSubscriptionDeploymentName, mgmtresources.Deployment{
 		Properties: &mgmtresources.DeploymentProperties{
 			Template: template,
 			Mode:     mgmtresources.Incremental,
@@ -117,44 +121,30 @@ func (d *deployer) deployGlobalSubscription(ctx context.Context) error {
 	})
 }
 
-func (d *deployer) deployManageIdentity(ctx context.Context) (string, error) {
-	deploymentName := "rp-production-managed-identity"
-
+func (d *deployer) deployManageIdentity(ctx context.Context) error {
 	b, err := Asset(generator.FileRPProductionManagedIdentity)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	var template map[string]interface{}
 	err = json.Unmarshal(b, &template)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	d.log.Infof("deploying %s", deploymentName)
-	err = d.deployments.CreateOrUpdateAndWait(ctx, d.config.ResourceGroupName, deploymentName, mgmtresources.Deployment{
+	d.log.Infof("deploying %s", rpManagedIdentityDeploymentName)
+	return d.deployments.CreateOrUpdateAndWait(ctx, d.config.ResourceGroupName, rpManagedIdentityDeploymentName, mgmtresources.Deployment{
 		Properties: &mgmtresources.DeploymentProperties{
 			Template: template,
 			Mode:     mgmtresources.Incremental,
 		},
 	})
-	if err != nil {
-		return "", err
-	}
-
-	deployment, err := d.deployments.Get(ctx, d.config.ResourceGroupName, deploymentName)
-	if err != nil {
-		return "", err
-	}
-
-	return deployment.Properties.Outputs.(map[string]interface{})["rpServicePrincipalId"].(map[string]interface{})["value"].(string), nil
 }
 
 func (d *deployer) deployPreDeploy(ctx context.Context, rpServicePrincipalID string) error {
-	deploymentName := "rp-production-predeploy"
-
 	var isCreate bool
-	_, err := d.deployments.Get(ctx, d.config.ResourceGroupName, deploymentName)
+	_, err := d.deployments.Get(ctx, d.config.ResourceGroupName, rpDeploymentName)
 	if isDeploymentNotFoundError(err) {
 		isCreate = true
 		err = nil
@@ -182,8 +172,8 @@ func (d *deployer) deployPreDeploy(ctx context.Context, rpServicePrincipalID str
 		Value: rpServicePrincipalID,
 	}
 
-	d.log.Infof("deploying %s", deploymentName)
-	return d.deployments.CreateOrUpdateAndWait(ctx, d.config.ResourceGroupName, deploymentName, mgmtresources.Deployment{
+	d.log.Infof("deploying %s", rpDeploymentName)
+	return d.deployments.CreateOrUpdateAndWait(ctx, d.config.ResourceGroupName, rpDeploymentName, mgmtresources.Deployment{
 		Properties: &mgmtresources.DeploymentProperties{
 			Template:   template,
 			Mode:       mgmtresources.Incremental,

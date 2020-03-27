@@ -34,9 +34,16 @@ import (
 
 var _ Deployer = (*deployer)(nil)
 
+const (
+	globalRPDeploymentName             = "rp-global"
+	globalRPSubscriptionDeploymentName = "rp-global-subscription"
+	rpManagedIdentityDeploymentName    = "rp-production-managed-identity"
+	rpDeploymentName                   = "rp-production-predeploy"
+)
+
 type Deployer interface {
-	PreDeploy(context.Context) (string, error)
-	Deploy(context.Context, string) error
+	PreDeploy(context.Context) error
+	Deploy(context.Context) error
 	Upgrade(context.Context) error
 }
 
@@ -92,7 +99,7 @@ func New(ctx context.Context, log *logrus.Entry, config *RPConfig, version strin
 	}, nil
 }
 
-func (d *deployer) Deploy(ctx context.Context, rpServicePrincipalID string) error {
+func (d *deployer) Deploy(ctx context.Context) error {
 	deploymentName := "rp-production-" + d.version
 
 	b, err := Asset(generator.FileRPProduction)
@@ -102,6 +109,11 @@ func (d *deployer) Deploy(ctx context.Context, rpServicePrincipalID string) erro
 
 	var template map[string]interface{}
 	err = json.Unmarshal(b, &template)
+	if err != nil {
+		return err
+	}
+
+	rpServicePrincipalID, err := d.getRpServicePrincipalID(ctx)
 	if err != nil {
 		return err
 	}

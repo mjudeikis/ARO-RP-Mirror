@@ -11,6 +11,15 @@ import (
 	"github.com/ghodss/yaml"
 )
 
+// DeploymentPhase enumerates the values for deploy tooling execution phases
+type DeploymentPhase int
+
+const (
+	DeploymentPhaseP DeploymentPhase = iota
+	DeploymentPhaseD
+	DeploymentPhaseU
+)
+
 // Config represents configuration object for deployer tooling
 type Config struct {
 	RPs           []RPConfig     `json:"rps,omitempty"`
