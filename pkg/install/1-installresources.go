@@ -23,7 +23,7 @@ import (
 )
 
 func (i *Installer) installResources(ctx context.Context) error {
-	g, err := i.loadGraph(ctx)
+	g, err := i.LoadGraph(ctx)
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package align
 import (
 	"context"
 	"log"
+	"reflect"
 	"strings"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/openshift/installer/pkg/asset/kubeconfig"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -184,9 +186,6 @@ func (a *aligner) InstallerFixups(ctx context.Context, doc *api.OpenShiftCluster
 }
 
 func (a *aligner) configurationFixup(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
-	// TODO:
-	// 1. Remove scc configurable
-	// 2. Add the system:aro-service user
 	i, err := install.NewInstaller(ctx, a.log, a.env, a.db.OpenShiftClusters, a.db.Billing, doc)
 	if err != nil {
 		return err
@@ -217,4 +216,28 @@ func (a *aligner) configurationFixup(ctx context.Context, doc *api.OpenShiftClus
 	}
 
 	return nil
+}
+
+func (a *aligner) KubeConfigFixup(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
+	i, err := install.NewInstaller(ctx, a.log, a.env, a.db.OpenShiftClusters, a.db.Billing, doc)
+	if err != nil {
+		return err
+	}
+	g, err := i.LoadGraph(ctx)
+	if err != nil {
+		return err
+	}
+
+	adminInternalClient := g[reflect.TypeOf(&kubeconfig.AdminInternalClient{})].(*kubeconfig.AdminInternalClient)
+	aroServiceInternalClient, err := i.GenerateAROServiceKubeconfig(g)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.db.OpenShiftClusters.Patch(ctx, doc.Key, func(doc *api.OpenShiftClusterDocument) error {
+		doc.OpenShiftCluster.Properties.AdminKubeconfig = adminInternalClient.File.Data
+		doc.OpenShiftCluster.Properties.AROServiceKubeconfig = aroServiceInternalClient.File.Data
+		return nil
+	})
+	return err
 }

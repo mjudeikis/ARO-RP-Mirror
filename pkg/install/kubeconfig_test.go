@@ -67,7 +67,7 @@ func TestGenerateAROServiceKubeconfig(t *testing.T) {
 
 	i := &Installer{}
 
-	aroServiceInternalClient, err := i.generateAROServiceKubeconfig(g)
+	aroServiceInternalClient, err := i.GenerateAROServiceKubeconfig(g)
 	if err != nil {
 		t.Fatal(err)
 	}

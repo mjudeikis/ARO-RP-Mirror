@@ -58,6 +58,11 @@ func baseline(ctx context.Context, log *logrus.Entry) error {
 			return err
 		}
 
+		err = a.KubeConfigFixup(ctx, doc)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return nil

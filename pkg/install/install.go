@@ -272,7 +272,7 @@ func (i *Installer) getBlobService(ctx context.Context, p mgmtstorage.Permission
 	return &c, nil
 }
 
-func (i *Installer) loadGraph(ctx context.Context) (graph, error) {
+func (i *Installer) LoadGraph(ctx context.Context) (graph, error) {
 	i.log.Print("load graph")
 
 	blobService, err := i.getBlobService(ctx, mgmtstorage.Permissions("r"), mgmtstorage.SignedResourceTypesO)
