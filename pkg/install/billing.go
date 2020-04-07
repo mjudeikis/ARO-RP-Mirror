@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/ARO-RP/pkg/database/cosmosdb"
 )
 
-func (i *Installer) createBillingRecord(ctx context.Context) error {
+func (i *Installer) CreateBillingRecord(ctx context.Context) error {
 	_, err := i.billing.Create(ctx, &api.BillingDocument{
 		ID:                        i.doc.ID,
 		Key:                       i.doc.Key,

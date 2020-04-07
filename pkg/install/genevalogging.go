@@ -9,7 +9,7 @@ import (
 	"github.com/Azure/ARO-RP/pkg/genevalogging"
 )
 
-func (i *Installer) ensureGenevaLogging(ctx context.Context) error {
+func (i *Installer) EnsureGenevaLogging(ctx context.Context) error {
 	gl := genevalogging.New(i.log, i.env, i.doc.OpenShiftCluster, i.kubernetescli, i.securitycli)
 	return gl.CreateOrUpdate(ctx)
 }

@@ -120,7 +120,7 @@ func TestDeployARMTemplate(t *testing.T) {
 				deployments: deploymentsClient,
 			}
 
-			err := i.deployARMTemplate(ctx, resourceGroup, "test", armTemplate, params)
+			err := i.DeployARMTemplate(ctx, resourceGroup, "test", armTemplate, params)
 			if !reflect.DeepEqual(err, tt.wantErr) {
 				t.Error(err)
 			}

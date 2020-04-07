@@ -557,7 +557,7 @@ func (i *Installer) installResources(ctx context.Context) error {
 			},
 		},
 	}
-	return i.deployARMTemplate(ctx, resourceGroup, "resources", t, map[string]interface{}{
+	return i.DeployARMTemplate(ctx, resourceGroup, "resources", t, map[string]interface{}{
 		"sas": map[string]interface{}{
 			"value": map[string]interface{}{
 				"signedStart":         i.doc.OpenShiftCluster.Properties.Install.Now.Format(time.RFC3339),

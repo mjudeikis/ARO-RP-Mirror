@@ -152,27 +152,27 @@ func (i *Installer) Install(ctx context.Context, installConfig *installconfig.In
 			action(func(ctx context.Context) error {
 				return i.installStorage(ctx, installConfig, platformCreds, image)
 			}),
-			action(i.createBillingRecord),
+			action(i.CreateBillingRecord),
 			action(i.installResources),
 			action(i.createPrivateEndpoint),
 			action(i.updateAPIIP),
 			action(i.createCertificates),
-			action(i.initializeKubernetesClients),
+			action(i.InitializeKubernetesClients),
 			condition{i.bootstrapConfigMapReady, 30 * time.Minute},
-			action(i.ensureGenevaLogging),
+			action(i.EnsureGenevaLogging),
 			action(i.incrInstallPhase),
 		},
 		api.InstallPhaseRemoveBootstrap: {
-			action(i.initializeKubernetesClients),
+			action(i.InitializeKubernetesClients),
 			action(i.removeBootstrap),
-			action(i.removeBootstrapIgnition),
+			action(i.RemoveBootstrapIgnition),
 			action(i.configureAPIServerCertificate),
 			condition{i.apiServersReady, 30 * time.Minute},
 			condition{i.operatorConsoleExists, 30 * time.Minute},
 			action(i.updateConsoleBranding),
 			condition{i.operatorConsoleReady, 10 * time.Minute},
 			condition{i.clusterVersionReady, 30 * time.Minute},
-			action(i.disableAlertManagerWarning),
+			action(i.DisableAlertManagerWarning),
 			action(i.disableUpdates),
 			action(i.disableSamples),
 			action(i.disableOperatorHubSources),
@@ -336,9 +336,9 @@ func (i *Installer) saveGraph(ctx context.Context, g graph) error {
 	return graph.CreateBlockBlobFromReader(bytes.NewReader([]byte(output)), nil)
 }
 
-// initializeKubernetesClients initializes clients which are used
+// InitializeKubernetesClients initializes clients which are used
 // once the cluster is up later on in the install process.
-func (i *Installer) initializeKubernetesClients(ctx context.Context) error {
+func (i *Installer) InitializeKubernetesClients(ctx context.Context) error {
 	restConfig, err := restconfig.RestConfig(i.env, i.doc.OpenShiftCluster)
 	if err != nil {
 		return err
@@ -368,7 +368,7 @@ func (i *Installer) initializeKubernetesClients(ctx context.Context) error {
 	return err
 }
 
-func (i *Installer) deployARMTemplate(ctx context.Context, rg string, tName string, t *arm.Template, params map[string]interface{}) error {
+func (i *Installer) DeployARMTemplate(ctx context.Context, rg string, tName string, t *arm.Template, params map[string]interface{}) error {
 	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 

@@ -257,7 +257,7 @@ func (i *Installer) installStorage(ctx context.Context, installConfig *installco
 		})
 	}
 
-	err = i.deployARMTemplate(ctx, resourceGroup, "storage", t, nil)
+	err = i.DeployARMTemplate(ctx, resourceGroup, "storage", t, nil)
 	if err != nil {
 		return err
 	}

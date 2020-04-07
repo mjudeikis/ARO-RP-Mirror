@@ -30,7 +30,7 @@ func (i *Installer) removeBootstrap(ctx context.Context) error {
 	return i.interfaces.DeleteAndWait(ctx, resourceGroup, "aro-bootstrap-nic")
 }
 
-func (i *Installer) removeBootstrapIgnition(ctx context.Context) error {
+func (i *Installer) RemoveBootstrapIgnition(ctx context.Context) error {
 	i.log.Print("remove ignition config")
 
 	blobService, err := i.getBlobService(ctx, mgmtstorage.Permissions("d"), mgmtstorage.SignedResourceTypesC)
