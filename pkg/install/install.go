@@ -78,7 +78,7 @@ type Installer struct {
 	operatorcli   operatorclient.Interface
 	configcli     configclient.Interface
 	samplescli    samplesclient.Interface
-	securitycli   securityclient.Interface
+	Securitycli   securityclient.Interface
 }
 
 const (
@@ -354,7 +354,7 @@ func (i *Installer) InitializeKubernetesClients(ctx context.Context) error {
 		return err
 	}
 
-	i.securitycli, err = securityclient.NewForConfig(restConfig)
+	i.Securitycli, err = securityclient.NewForConfig(restConfig)
 	if err != nil {
 		return err
 	}

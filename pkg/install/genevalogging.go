@@ -10,6 +10,6 @@ import (
 )
 
 func (i *Installer) EnsureGenevaLogging(ctx context.Context) error {
-	gl := genevalogging.New(i.log, i.env, i.doc.OpenShiftCluster, i.kubernetescli, i.securitycli)
+	gl := genevalogging.New(i.log, i.env, i.doc.OpenShiftCluster, i.kubernetescli, i.Securitycli)
 	return gl.CreateOrUpdate(ctx)
 }

@@ -6,24 +6,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/ARO-RP/pkg/install"
-
-	"github.com/Azure/ARO-RP/pkg/env"
-
-	"github.com/Azure/ARO-RP/pkg/api"
-	"github.com/Azure/ARO-RP/pkg/util/arm"
-	"github.com/Azure/ARO-RP/pkg/util/azureclient/graphrbac"
-	"github.com/Azure/ARO-RP/pkg/util/stringutils"
 	mgmtauthorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 
+	"github.com/Azure/ARO-RP/pkg/api"
 	"github.com/Azure/ARO-RP/pkg/database"
-
-	"github.com/sirupsen/logrus"
+	"github.com/Azure/ARO-RP/pkg/env"
+	"github.com/Azure/ARO-RP/pkg/install"
+	"github.com/Azure/ARO-RP/pkg/util/arm"
+	"github.com/Azure/ARO-RP/pkg/util/azureclient/graphrbac"
+	"github.com/Azure/ARO-RP/pkg/util/stringutils"
 )
 
 var apiVersions = map[string]string{
@@ -183,5 +181,40 @@ func (a *aligner) InstallerFixups(ctx context.Context, doc *api.OpenShiftCluster
 		return err
 	}
 	return nil
+}
 
+func (a *aligner) configurationFixup(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
+	// TODO:
+	// 1. Remove scc configurable
+	// 2. Add the system:aro-service user
+	i, err := install.NewInstaller(ctx, a.log, a.env, a.db.OpenShiftClusters, a.db.Billing, doc)
+	if err != nil {
+		return err
+	}
+
+	priv, err := i.Securitycli.SecurityV1().SecurityContextConstraints().Get("privileged", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	p := priv.DeepCopy()
+
+	var needsUpdate bool
+	users := []string{}
+	for _, acc := range p.Users {
+		if acc != "system:serviceaccount:openshift-azure-logging:geneva" {
+			users = append(users, acc)
+		} else {
+			needsUpdate = true
+		}
+	}
+
+	if needsUpdate {
+		p.Users = users
+		_, err := i.Securitycli.SecurityV1().SecurityContextConstraints().Update(p)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
