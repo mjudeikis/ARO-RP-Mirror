@@ -257,7 +257,7 @@ func (i *Installer) installStorage(ctx context.Context, installConfig *installco
 		})
 	}
 
-	err = i.DeployARMTemplate(ctx, resourceGroup, "storage", t, nil)
+	err = i.deployARMTemplate(ctx, resourceGroup, "storage", t, nil)
 	if err != nil {
 		return err
 	}
@@ -308,7 +308,7 @@ func (i *Installer) installStorage(ctx context.Context, installConfig *installco
 	}
 
 	adminInternalClient := g[reflect.TypeOf(&kubeconfig.AdminInternalClient{})].(*kubeconfig.AdminInternalClient)
-	aroServiceInternalClient, err := i.GenerateAROServiceKubeconfig(g)
+	aroServiceInternalClient, err := i.generateAROServiceKubeconfig(g)
 	if err != nil {
 		return err
 	}

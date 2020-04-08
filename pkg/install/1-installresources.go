@@ -23,7 +23,7 @@ import (
 )
 
 func (i *Installer) installResources(ctx context.Context) error {
-	g, err := i.LoadGraph(ctx)
+	g, err := i.loadGraph(ctx)
 	if err != nil {
 		return err
 	}
@@ -557,7 +557,7 @@ func (i *Installer) installResources(ctx context.Context) error {
 			},
 		},
 	}
-	return i.DeployARMTemplate(ctx, resourceGroup, "resources", t, map[string]interface{}{
+	return i.deployARMTemplate(ctx, resourceGroup, "resources", t, map[string]interface{}{
 		"sas": map[string]interface{}{
 			"value": map[string]interface{}{
 				"signedStart":         i.doc.OpenShiftCluster.Properties.Install.Now.Format(time.RFC3339),

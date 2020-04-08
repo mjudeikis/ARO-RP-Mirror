@@ -11,9 +11,9 @@ import (
 	"k8s.io/client-go/util/retry"
 )
 
-// DisableAlertManagerWarning is a hack to disable the
+// disableAlertManagerWarning is a hack to disable the
 // AlertmanagerReceiversNotConfigured warning added in 4.3.8.
-func (i *Installer) DisableAlertManagerWarning(ctx context.Context) error {
+func (i *Installer) disableAlertManagerWarning(ctx context.Context) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		s, err := i.kubernetescli.CoreV1().Secrets("openshift-monitoring").Get("alertmanager-main", metav1.GetOptions{})
 		if err != nil {

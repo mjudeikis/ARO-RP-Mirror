@@ -5,18 +5,20 @@ package main
 
 import (
 	"context"
+	"regexp"
+
+	"github.com/Azure/ARO-RP/pkg/install"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 
-	"github.com/Azure/ARO-RP/pkg/align"
 	"github.com/Azure/ARO-RP/pkg/database"
 	"github.com/Azure/ARO-RP/pkg/env"
 	"github.com/Azure/ARO-RP/pkg/metrics/noop"
 	"github.com/Azure/ARO-RP/pkg/util/encryption"
 )
 
-func baseline(ctx context.Context, log *logrus.Entry) error {
+func baseline(ctx context.Context, log *logrus.Entry, r string) error {
 	uuid := uuid.NewV4().String()
 	log.Printf("uuid %s", uuid)
 
@@ -25,7 +27,7 @@ func baseline(ctx context.Context, log *logrus.Entry) error {
 		return err
 	}
 
-	cipher, err := encryption.NewXChaCha20Poly1305(ctx, _env)
+	cipher, err := encryption.NewXChaCha20Poly1305(ctx, _env, env.EncryptionSecretName)
 	if err != nil {
 		return err
 	}
@@ -40,29 +42,49 @@ func baseline(ctx context.Context, log *logrus.Entry) error {
 		return err
 	}
 
-	log.Infof("cluster found %d", len(docs))
+	log.Infof("cluster count %d", len(docs))
 
-	a := align.New(log, _env, db)
+	// example:
+	// ^\/subscriptions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/resourceGroups\/[-a-z0-9_().]{0,89}[-a-z0-9_()]\/providers\/Microsoft.RedHatOpenShift\/openShiftClusters\/[0-9a-z_]{0,89}$
+	log.Infof("running with rx %s", r)
+	RxResourceID := regexp.MustCompile(r)
 
 	for _, doc := range docs {
-		// currently this in our sub gives :
-		// App is not authorized to perform non read operations on a System Deny Assignment.
-		//log.Infof("creating deny assignment: %s ", doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID)
-		//err := a.CreateOrUpdateDenyAssignment(ctx, doc)
-		//if err != nil {
-		//	return err
-		//}
+		if RxResourceID.MatchString(doc.OpenShiftCluster.ID) {
+			log.Infof("cluster: %s", doc.OpenShiftCluster.ID)
 
-		err := a.InstallerFixups(ctx, doc)
-		if err != nil {
-			return err
+			i, err := install.NewInstaller(ctx, log, _env, db.OpenShiftClusters, db.Billing, doc)
+			if err != nil {
+				return err
+			}
+
+			exits, err := i.ClusterExits(ctx, doc)
+			if err != nil {
+				return err
+			}
+			if !exits {
+				log.Info("RG not found. Skipping.")
+				continue
+			}
+
+			// currently this in our sub gives :
+			// App is not authorized to perform non read operations on a System Deny Assignment.
+			log.Info("creating deny assignment")
+			err = i.CreateOrUpdateDenyAssignment(ctx, doc)
+			if err != nil {
+				return err
+			}
+
+			err = i.InstallerFixups(ctx, doc)
+			if err != nil {
+				return err
+			}
+
+			err = i.KubeConfigFixup(ctx, doc)
+			if err != nil {
+				return err
+			}
 		}
-
-		err = a.KubeConfigFixup(ctx, doc)
-		if err != nil {
-			return err
-		}
-
 	}
 
 	return nil

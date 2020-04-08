@@ -257,7 +257,7 @@ func (c *openShiftClusters) ListAll(ctx context.Context, collid string) ([]*api.
 		})
 
 		for {
-			docs, err := result.Next(ctx)
+			docs, err := result.Next(ctx, -1)
 			if err != nil {
 				return nil, err
 			}

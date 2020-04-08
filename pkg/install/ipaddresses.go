@@ -17,7 +17,7 @@ import (
 )
 
 func (i *Installer) updateRouterIP(ctx context.Context) error {
-	g, err := i.LoadGraph(ctx)
+	g, err := i.loadGraph(ctx)
 	if err != nil {
 		return err
 	}

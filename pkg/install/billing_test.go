@@ -144,7 +144,7 @@ func TestCreateBillingEntry(t *testing.T) {
 				billing: billing,
 			}
 
-			err := i.CreateBillingRecord(ctx)
+			err := i.createBillingRecord(ctx)
 			if err != nil {
 				if tt.wantError != err {
 					t.Errorf("Error want (%s), having (%s)", tt.wantError.Error(), err.Error())

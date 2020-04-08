@@ -1,4 +1,4 @@
-package align
+package install
 
 import (
 	"context"
@@ -13,44 +13,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/openshift/installer/pkg/asset/kubeconfig"
-	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/Azure/ARO-RP/pkg/api"
-	"github.com/Azure/ARO-RP/pkg/database"
-	"github.com/Azure/ARO-RP/pkg/env"
-	"github.com/Azure/ARO-RP/pkg/install"
 	"github.com/Azure/ARO-RP/pkg/util/arm"
 	"github.com/Azure/ARO-RP/pkg/util/azureclient/graphrbac"
 	"github.com/Azure/ARO-RP/pkg/util/stringutils"
 )
 
-var apiVersions = map[string]string{
-	"authorization-denyassignment": "2018-07-01-preview",
-}
-
-type aligner struct {
-	log *logrus.Entry
-	db  *database.Database
-	env env.Interface
-}
-
-func New(log *logrus.Entry, env env.Interface, db *database.Database) *aligner {
-	return &aligner{
-		log: log,
-		db:  db,
-		env: env,
-	}
-}
-
-func (a *aligner) CreateOrUpdateDenyAssignment(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
-	// initiate installer so we could re-use code
-	i, err := install.NewInstaller(ctx, a.log, a.env, a.db.OpenShiftClusters, a.db.Billing, doc)
-	if err != nil {
-		return err
-	}
-
+func (i *Installer) CreateOrUpdateDenyAssignment(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
 	// this is almost full copy from installStorage
 	var clusterSPObjectID string
 	spp := doc.OpenShiftCluster.Properties.ServicePrincipalProfile
@@ -137,8 +109,7 @@ func (a *aligner) CreateOrUpdateDenyAssignment(ctx context.Context, doc *api.Ope
 		},
 	}
 	resourceGroup := stringutils.LastTokenByte(doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID, '/')
-
-	err = i.DeployARMTemplate(ctx, resourceGroup, "denyassignment", t, nil)
+	err = i.deployARMTemplate(ctx, resourceGroup, "denyassignment", t, nil)
 	if err != nil {
 		return err
 	}
@@ -146,52 +117,40 @@ func (a *aligner) CreateOrUpdateDenyAssignment(ctx context.Context, doc *api.Ope
 	return nil
 }
 
-func (a *aligner) InstallerFixups(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
-	// initiate installer so we could re-use code
-	a.log.Infof("cluster: %s", doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID)
-	i, err := install.NewInstaller(ctx, a.log, a.env, a.db.OpenShiftClusters, a.db.Billing, doc)
+func (i *Installer) InstallerFixups(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
+	err := i.initializeKubernetesClients(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = i.InitializeKubernetesClients(ctx)
+	i.log.Info("creating billing table:")
+	err = i.createBillingRecord(ctx)
 	if err != nil {
 		return err
 	}
 
-	a.log.Info("creating billing table:")
-	err = i.CreateBillingRecord(ctx)
+	i.log.Info("creating alertmanager")
+	err = i.disableAlertManagerWarning(ctx)
 	if err != nil {
 		return err
 	}
 
-	a.log.Info("creating alertmanager")
-	err = i.DisableAlertManagerWarning(ctx)
+	i.log.Info("remove ignition config")
+	err = i.removeBootstrapIgnition(ctx)
 	if err != nil {
 		return err
 	}
 
-	a.log.Info("remove ignition config")
-	err = i.RemoveBootstrapIgnition(ctx)
-	if err != nil {
-		return err
-	}
-
-	a.log.Info("ensure genevaLogging")
-	err = i.EnsureGenevaLogging(ctx)
+	i.log.Info("ensure genevaLogging")
+	err = i.ensureGenevaLogging(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *aligner) configurationFixup(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
-	i, err := install.NewInstaller(ctx, a.log, a.env, a.db.OpenShiftClusters, a.db.Billing, doc)
-	if err != nil {
-		return err
-	}
-
-	priv, err := i.Securitycli.SecurityV1().SecurityContextConstraints().Get("privileged", metav1.GetOptions{})
+func (i *Installer) ConfigurationFixup(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
+	priv, err := i.securitycli.SecurityV1().SecurityContextConstraints().Get("privileged", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -209,7 +168,7 @@ func (a *aligner) configurationFixup(ctx context.Context, doc *api.OpenShiftClus
 
 	if needsUpdate {
 		p.Users = users
-		_, err := i.Securitycli.SecurityV1().SecurityContextConstraints().Update(p)
+		_, err := i.securitycli.SecurityV1().SecurityContextConstraints().Update(p)
 		if err != nil {
 			return err
 		}
@@ -218,26 +177,48 @@ func (a *aligner) configurationFixup(ctx context.Context, doc *api.OpenShiftClus
 	return nil
 }
 
-func (a *aligner) KubeConfigFixup(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
-	i, err := install.NewInstaller(ctx, a.log, a.env, a.db.OpenShiftClusters, a.db.Billing, doc)
-	if err != nil {
-		return err
-	}
-	g, err := i.LoadGraph(ctx)
+func (i *Installer) KubeConfigFixup(ctx context.Context, doc *api.OpenShiftClusterDocument) error {
+	g, err := i.loadGraph(ctx)
 	if err != nil {
 		return err
 	}
 
 	adminInternalClient := g[reflect.TypeOf(&kubeconfig.AdminInternalClient{})].(*kubeconfig.AdminInternalClient)
-	aroServiceInternalClient, err := i.GenerateAROServiceKubeconfig(g)
+	aroServiceInternalClient, err := i.generateAROServiceKubeconfig(g)
 	if err != nil {
 		return err
 	}
 
-	_, err = a.db.OpenShiftClusters.Patch(ctx, doc.Key, func(doc *api.OpenShiftClusterDocument) error {
+	_, err = i.db.Patch(ctx, doc.Key, func(doc *api.OpenShiftClusterDocument) error {
 		doc.OpenShiftCluster.Properties.AdminKubeconfig = adminInternalClient.File.Data
 		doc.OpenShiftCluster.Properties.AROServiceKubeconfig = aroServiceInternalClient.File.Data
 		return nil
 	})
 	return err
+}
+
+func (i *Installer) ClusterExits(ctx context.Context, doc *api.OpenShiftClusterDocument) (bool, error) {
+	resourceGroup := stringutils.LastTokenByte(doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID, '/')
+
+	// if resource group delete was attempted, it will fail with "linked" resource
+	// error due to private endpoint to management vnet. We check existence of the
+	// cluster by checking aro lb existence because it will be deleted.
+	_, err := i.loadbalancers.Get(ctx, resourceGroup, "aro", "")
+	if err != nil {
+		if !isNotFoundError(err) {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
+func isNotFoundError(err error) bool {
+	if detailedErr, ok := err.(autorest.DetailedError); ok {
+		if requestError, ok := detailedErr.Original.(*azure.RequestError); ok {
+			if requestError.ServiceError.Code == "ResourceNotFound" {
+				return true
+			}
+		}
+	}
+	return false
 }

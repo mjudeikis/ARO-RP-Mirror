@@ -68,7 +68,7 @@ func TestDisableAlertManagerWarning(t *testing.T) {
 		}),
 	}
 
-	err := i.DisableAlertManagerWarning(ctx)
+	err := i.disableAlertManagerWarning(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
