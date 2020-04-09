@@ -58,6 +58,12 @@ func baseline(ctx context.Context, log *logrus.Entry, regex string) error {
 
 	log.Infof("cluster count %d", len(docs.OpenShiftClusterDocuments))
 
+	log.Info("listing clusters")
+	for _, doc := range docs.OpenShiftClusterDocuments {
+		log.Info(doc.OpenShiftCluster.ID)
+	}
+
+	log.Info("updating clusters")
 	for _, doc := range docs.OpenShiftClusterDocuments {
 		if rxResourceID.MatchString(doc.OpenShiftCluster.ID) {
 			log.Infof("cluster %s", doc.OpenShiftCluster.ID)
