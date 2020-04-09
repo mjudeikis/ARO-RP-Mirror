@@ -13,6 +13,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 
+	"github.com/Azure/ARO-RP/pkg/api"
 	"github.com/Azure/ARO-RP/pkg/database"
 	"github.com/Azure/ARO-RP/pkg/env"
 	"github.com/Azure/ARO-RP/pkg/metrics/noop"
@@ -60,11 +61,33 @@ func baseline(ctx context.Context, log *logrus.Entry, regex string) error {
 
 	log.Info("listing clusters")
 	for _, doc := range docs.OpenShiftClusterDocuments {
-		log.Info(doc.OpenShiftCluster.ID)
+		if doc.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateCreating ||
+			doc.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateDeleting {
+			continue
+		}
+
+		if doc.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateFailed &&
+			(doc.OpenShiftCluster.Properties.FailedProvisioningState == api.ProvisioningStateCreating ||
+				doc.OpenShiftCluster.Properties.FailedProvisioningState == api.ProvisioningStateDeleting) {
+			continue
+		}
+
+		fmt.Println(doc.OpenShiftCluster.Properties.ProvisioningState, doc.OpenShiftCluster.Properties.FailedProvisioningState, doc.OpenShiftCluster.ID, doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID)
 	}
 
 	log.Info("updating clusters")
 	for _, doc := range docs.OpenShiftClusterDocuments {
+		if doc.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateCreating ||
+			doc.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateDeleting {
+			continue
+		}
+
+		if doc.OpenShiftCluster.Properties.ProvisioningState == api.ProvisioningStateFailed &&
+			(doc.OpenShiftCluster.Properties.FailedProvisioningState == api.ProvisioningStateCreating ||
+				doc.OpenShiftCluster.Properties.FailedProvisioningState == api.ProvisioningStateDeleting) {
+			continue
+		}
+
 		if rxResourceID.MatchString(doc.OpenShiftCluster.ID) {
 			log.Infof("cluster %s", doc.OpenShiftCluster.ID)
 
