@@ -72,7 +72,17 @@ func baseline(ctx context.Context, log *logrus.Entry, regex string) error {
 			continue
 		}
 
-		fmt.Println(doc.OpenShiftCluster.Properties.ProvisioningState, doc.OpenShiftCluster.Properties.FailedProvisioningState, doc.OpenShiftCluster.ID, doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID)
+		i, err := install.NewInstaller(ctx, log, _env, db.OpenShiftClusters, db.Billing, doc)
+		if err != nil {
+			return err
+		}
+
+		exists, err := i.ClusterExists(ctx, doc)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(exists, doc.OpenShiftCluster.Properties.ProvisioningState, doc.OpenShiftCluster.Properties.FailedProvisioningState, doc.OpenShiftCluster.ID, doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID)
 	}
 
 	log.Info("updating clusters")
