@@ -26,7 +26,7 @@ type OpenShiftClusters interface {
 	Create(context.Context, *api.OpenShiftClusterDocument) (*api.OpenShiftClusterDocument, error)
 	Get(context.Context, string) (*api.OpenShiftClusterDocument, error)
 	QueueLength(context.Context, string) (int, error)
-	ListAll(ctx context.Context, collid string) ([]*api.OpenShiftClusterDocument, error)
+	ListAll(context.Context) (*api.OpenShiftClusterDocuments, error)
 	Patch(context.Context, string, func(*api.OpenShiftClusterDocument) error) (*api.OpenShiftClusterDocument, error)
 	PatchWithLease(context.Context, string, func(*api.OpenShiftClusterDocument) error) (*api.OpenShiftClusterDocument, error)
 	Update(context.Context, *api.OpenShiftClusterDocument) (*api.OpenShiftClusterDocument, error)
@@ -241,36 +241,8 @@ func (c *openShiftClusters) ListByPrefix(subscriptionID, prefix, continuation st
 	), nil
 }
 
-// ListAll returns all requested documents
-func (c *openShiftClusters) ListAll(ctx context.Context, collid string) ([]*api.OpenShiftClusterDocument, error) {
-	partitions, err := c.collc.PartitionKeyRanges(ctx, collid)
-	if err != nil {
-		return nil, err
-	}
-
-	var documents []*api.OpenShiftClusterDocument
-	for _, r := range partitions.PartitionKeyRanges {
-		result := c.c.Query("", &cosmosdb.Query{
-			Query: `SELECT * FROM OpenShiftClusters doc `,
-		}, &cosmosdb.Options{
-			PartitionKeyRangeID: r.ID,
-		})
-
-		for {
-			docs, err := result.Next(ctx, -1)
-			if err != nil {
-				return nil, err
-			}
-			if docs == nil {
-				break
-			}
-
-			for _, doc := range docs.OpenShiftClusterDocuments {
-				documents = append(documents, doc)
-			}
-		}
-	}
-	return documents, nil
+func (c *openShiftClusters) ListAll(ctx context.Context) (*api.OpenShiftClusterDocuments, error) {
+	return c.c.ListAll(ctx, nil)
 }
 
 func (c *openShiftClusters) Dequeue(ctx context.Context) (*api.OpenShiftClusterDocument, error) {

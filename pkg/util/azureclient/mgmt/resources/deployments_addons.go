@@ -16,6 +16,16 @@ type DeploymentsClientAddons interface {
 	CreateOrUpdateAndWait(ctx context.Context, resourceGroupName string, deploymentName string, parameters mgmtresources.Deployment) error
 	CreateOrUpdateAtSubscriptionScopeAndWait(ctx context.Context, deploymentName string, parameters mgmtresources.Deployment) error
 	Wait(ctx context.Context, resourceGroupName string, deploymentName string) error
+	DeleteAndWait(ctx context.Context, resourceGroupName string, deploymentName string) error
+}
+
+func (c *deploymentsClient) DeleteAndWait(ctx context.Context, resourceGroupName string, deploymentName string) error {
+	future, err := c.Delete(ctx, resourceGroupName, deploymentName)
+	if err != nil {
+		return err
+	}
+
+	return future.WaitForCompletionRef(ctx, c.Client)
 }
 
 func (c *deploymentsClient) CreateOrUpdateAtSubscriptionScopeAndWait(ctx context.Context, deploymentName string, parameters mgmtresources.Deployment) error {

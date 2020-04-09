@@ -25,7 +25,7 @@ func usage() {
 	fmt.Fprintf(flag.CommandLine.Output(), "  %s mirror\n", os.Args[0])
 	fmt.Fprintf(flag.CommandLine.Output(), "  %s monitor\n", os.Args[0])
 	fmt.Fprintf(flag.CommandLine.Output(), "  %s rp\n", os.Args[0])
-	fmt.Fprintf(flag.CommandLine.Output(), "  %s baseline /subscriptions/225e02bc-43d0-43d1-a01a-17e584a4ef69/resourceGroups/v4-eastus/providers/Microsoft.RedHatOpenShift/openShiftClusters/mjudeikis \n", os.Args[0])
+	fmt.Fprintf(flag.CommandLine.Output(), "  %s baseline regex\n", os.Args[0])
 	flag.PrintDefaults()
 }
 
