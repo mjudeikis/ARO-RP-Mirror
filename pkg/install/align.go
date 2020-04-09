@@ -4,6 +4,7 @@ import (
 	"context"
 
 	mgmtauthorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	mgmtresources "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
@@ -81,11 +82,18 @@ func (i *Installer) CreateOrUpdateDenyAssignment(ctx context.Context, doc *api.O
 
 	resourceGroup := stringutils.LastTokenByte(doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID, '/')
 
-	err = i.deployARMTemplate(ctx, resourceGroup, "denyassignment", t, nil)
+	i.log.Info("deploying")
+	err = i.deployments.CreateOrUpdateAndWait(ctx, resourceGroup, "denyassignment", mgmtresources.Deployment{
+		Properties: &mgmtresources.DeploymentProperties{
+			Template: t,
+			Mode:     mgmtresources.Incremental,
+		},
+	})
 	if err != nil {
 		return err
 	}
 
+	i.log.Info("deleting deployment")
 	return i.deployments.DeleteAndWait(ctx, resourceGroup, "denyassignment")
 }
 
