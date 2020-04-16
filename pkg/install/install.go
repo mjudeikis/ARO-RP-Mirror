@@ -397,9 +397,31 @@ func (i *Installer) deployARMTemplate(ctx context.Context, rg string, tName stri
 		return err == nil, err
 	}, timeoutCtx.Done())
 
-	if isQuota, errMsg := hasResourceQuotaExceededError(err); isQuota {
-		err = api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeQuotaExceeded, errMsg, "")
+	if err != nil {
+		marshaled, marshalErr := json.Marshal(err)
+		if marshalErr != nil {
+			return api.NewCloudError(http.StatusInternalServerError, api.CloudErrorCodeInternalServerError, "", "Internal server error.")
+		}
+		errDetails := string(marshaled)
+
+		// Try to give some kind of information even if marshaled error doesn't have any
+		if errDetails == "{}" {
+			errDetails = err.Error()
+		}
+
+		return &api.CloudError{
+			StatusCode: http.StatusBadRequest,
+			CloudErrorBody: &api.CloudErrorBody{
+				Code:    api.CloudErrorCodeDeploymentFailed,
+				Message: "ARM deployment failed.",
+				Details: []api.CloudErrorBody{
+					{
+						Message: errDetails,
+					},
+				},
+			},
+		}
 	}
 
-	return err
+	return nil
 }
