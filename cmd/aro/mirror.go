@@ -94,6 +94,7 @@ func mirror(ctx context.Context, log *logrus.Entry) error {
 	for _, ref := range []string{
 		"linuxgeneva-microsoft.azurecr.io/genevamdsd:master_266",
 		"linuxgeneva-microsoft.azurecr.io/genevamdm:master_35",
+		"registry.redhat.io/openshift4/ose-logging-eventrouter:latest",
 	} {
 		log.Printf("mirroring %s", ref)
 		err = pkgmirror.Copy(ctx, pkgmirror.Dest(dstAcr+".azurecr.io", ref), ref, dstauth, srcauthGeneva)
