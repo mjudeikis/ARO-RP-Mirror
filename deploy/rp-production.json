@@ -186,12 +186,7 @@
                                                 "primary": true,
                                                 "publicIPAddressConfiguration": {
                                                     "name": "rp-vmss-pip"
-                                                },
-                                                "loadBalancerBackendAddressPools": [
-                                                    {
-                                                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', 'rp-lb', 'rp-backend')]"
-                                                    }
-                                                ]
+                                                }
                                             }
                                         }
                                     ]

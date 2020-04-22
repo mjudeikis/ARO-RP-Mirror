@@ -280,6 +280,20 @@ func (m *MockVirtualMachineScaleSetsClient) EXPECT() *MockVirtualMachineScaleSet
 	return m.recorder
 }
 
+// CreateOrUpdateAndWait mocks base method
+func (m *MockVirtualMachineScaleSetsClient) CreateOrUpdateAndWait(arg0 context.Context, arg1, arg2 string, arg3 compute.VirtualMachineScaleSet) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrUpdateAndWait", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateOrUpdateAndWait indicates an expected call of CreateOrUpdateAndWait
+func (mr *MockVirtualMachineScaleSetsClientMockRecorder) CreateOrUpdateAndWait(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateAndWait", reflect.TypeOf((*MockVirtualMachineScaleSetsClient)(nil).CreateOrUpdateAndWait), arg0, arg1, arg2, arg3)
+}
+
 // DeleteAndWait mocks base method
 func (m *MockVirtualMachineScaleSetsClient) DeleteAndWait(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
@@ -292,6 +306,21 @@ func (m *MockVirtualMachineScaleSetsClient) DeleteAndWait(arg0 context.Context, 
 func (mr *MockVirtualMachineScaleSetsClientMockRecorder) DeleteAndWait(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAndWait", reflect.TypeOf((*MockVirtualMachineScaleSetsClient)(nil).DeleteAndWait), arg0, arg1, arg2)
+}
+
+// Get mocks base method
+func (m *MockVirtualMachineScaleSetsClient) Get(arg0 context.Context, arg1, arg2 string) (compute.VirtualMachineScaleSet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2)
+	ret0, _ := ret[0].(compute.VirtualMachineScaleSet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockVirtualMachineScaleSetsClientMockRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockVirtualMachineScaleSetsClient)(nil).Get), arg0, arg1, arg2)
 }
 
 // List mocks base method

@@ -12,6 +12,16 @@ import (
 type VirtualMachineScaleSetsClientAddons interface {
 	List(ctx context.Context, resourceGroupName string) ([]mgmtcompute.VirtualMachineScaleSet, error)
 	DeleteAndWait(ctx context.Context, resourceGroupName, VMScaleSetName string) error
+	CreateOrUpdateAndWait(ctx context.Context, resourceGroupName string, VMScaleSetName string, parameters mgmtcompute.VirtualMachineScaleSet) (err error)
+}
+
+func (c *virtualMachineScaleSetsClient) CreateOrUpdateAndWait(ctx context.Context, resourceGroupName string, VMScaleSetName string, parameters mgmtcompute.VirtualMachineScaleSet) error {
+	future, err := c.CreateOrUpdate(ctx, resourceGroupName, VMScaleSetName, parameters)
+	if err != nil {
+		return err
+	}
+
+	return future.WaitForCompletionRef(ctx, c.VirtualMachineScaleSetsClient.Client)
 }
 
 func (c *virtualMachineScaleSetsClient) DeleteAndWait(ctx context.Context, resourceGroupName string, VMScaleSetName string) error {

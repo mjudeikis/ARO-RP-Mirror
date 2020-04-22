@@ -1029,11 +1029,6 @@ rm /etc/motd.d/*
 												PublicIPAddressConfiguration: &mgmtcompute.VirtualMachineScaleSetPublicIPAddressConfiguration{
 													Name: to.StringPtr("rp-vmss-pip"),
 												},
-												LoadBalancerBackendAddressPools: &[]mgmtcompute.SubResource{
-													{
-														ID: to.StringPtr("[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', 'rp-lb', 'rp-backend')]"),
-													},
-												},
 											},
 										},
 									},

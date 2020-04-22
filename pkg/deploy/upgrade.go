@@ -8,8 +8,11 @@ import (
 	"time"
 
 	mgmtcompute "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-03-01/compute"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/apimachinery/pkg/util/wait"
+
+	"github.com/Azure/ARO-RP/pkg/util/azureutil"
 )
 
 const (
@@ -19,9 +22,31 @@ const (
 func (d *deployer) Upgrade(ctx context.Context) error {
 	timeoutCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 	defer cancel()
-	err := d.waitForRPReadiness(timeoutCtx, vmssPrefix+d.version)
+	vmssName := vmssPrefix + d.version
+	err := d.waitForRPReadiness(timeoutCtx, vmssName)
 	if err != nil {
 		return err
+	}
+
+	// when RP reports heathy, add it to the LB backend pool
+	vmss, err := d.vmss.Get(ctx, d.config.ResourceGroupName, vmssName)
+	if err != nil {
+		return err
+	}
+	lbID, err := azureutil.ResourceID(&azure.Resource{
+		SubscriptionID: d.config.SubscriptionID,
+		ResourceGroup:  d.config.ResourceGroupName,
+		Provider:       "Microsoft.Network",
+		ResourceType:   "loadBalancers",
+		ResourceName:   "rp-lb",
+	})
+	if err != nil {
+		return err
+	}
+	(*(*vmss.VirtualMachineScaleSetProperties.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations)[0].VirtualMachineScaleSetNetworkConfigurationProperties.IPConfigurations)[0].LoadBalancerBackendAddressPools = &[]mgmtcompute.SubResource{
+		{
+			ID: to.StringPtr(lbID + "/rp-backend"),
+		},
 	}
 
 	return d.removeOldScalesets(ctx)
