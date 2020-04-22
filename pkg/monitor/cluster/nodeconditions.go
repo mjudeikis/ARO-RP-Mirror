@@ -38,7 +38,7 @@ func (mon *Monitor) emitNodeConditions(ctx context.Context) error {
 				"type":   string(c.Type),
 			})
 
-			if mon.logMessages {
+			if mon.logEvents {
 				mon.log.WithFields(logrus.Fields{
 					"metric":  "node.conditions",
 					"name":    n.Name,
