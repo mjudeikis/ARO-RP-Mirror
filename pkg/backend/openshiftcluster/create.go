@@ -306,7 +306,14 @@ func (m *Manager) Create(ctx context.Context) error {
 		return err
 	}
 
-	return i.Install(ctx, installConfig, platformCreds, image)
+	iErr := i.Install(ctx, installConfig, platformCreds, image)
+	if err != nil {
+		err := i.GatherFailureLogs(ctx)
+		if err != nil {
+			m.log.Print(err)
+		}
+	}
+	return iErr
 }
 
 var rxRHCOS = regexp.MustCompile(`rhcos-((\d+)\.\d+\.\d{8})\d{4}\.\d+-azure\.x86_64\.vhd`)
