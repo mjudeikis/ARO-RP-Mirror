@@ -5,6 +5,7 @@ package install
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -53,6 +54,28 @@ func hasResourceQuotaExceededError(err error) (bool, string) {
 					if message, ok := d["message"].(string); ok {
 						return true, message
 					}
+				}
+			}
+		}
+	}
+	return false, ""
+}
+
+// hasPrivateLinkError returns true and the original error message if
+// the error contains a PrivateLinkServiceCannotBeCreatedInSubnetThatHasNetworkPoliciesEnabled error
+func hasPrivateLinkError(err error) (bool, string) {
+	if serviceErr, ok := err.(*azure.ServiceError); ok &&
+		serviceErr.Code == "DeploymentFailed" {
+		for _, d := range serviceErr.Details {
+			if d["code"] == "BadRequest" &&
+				strings.Contains(d["message"].(string), "PrivateLinkServiceCannotBeCreatedInSubnetThatHasNetworkPoliciesEnabled") {
+				var e struct {
+					Err azure.ServiceError `json:"error"`
+				}
+				// this particular error comes as string and not error :/
+				err := json.Unmarshal([]byte(d["message"].(string)), &e)
+				if err == nil && e.Err.Message != "" {
+					return true, e.Err.Message
 				}
 			}
 		}

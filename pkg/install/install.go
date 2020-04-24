@@ -413,5 +413,9 @@ func (i *Installer) deployARMTemplate(ctx context.Context, rg string, tName stri
 		err = api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeQuotaExceeded, errMsg, "")
 	}
 
+	if isPrivateLink, errMsg := hasPrivateLinkError(err); isPrivateLink {
+		err = api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeNetworkPoliciesEnabled, errMsg, "")
+	}
+
 	return err
 }

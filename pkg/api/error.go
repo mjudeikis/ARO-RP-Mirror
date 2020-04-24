@@ -68,6 +68,7 @@ var (
 	CloudErrorCodeDuplicateDomain                    = "DuplicateDomain"
 	CloudErrorCodeResourceQuotaExceeded              = "ResourceQuotaExceeded"
 	CloudErrorCodeQuotaExceeded                      = "QuotaExceeded"
+	CloudErrorCodeNetworkPoliciesEnabled             = "NetworkPoliciesEnabled"
 	CloudErrorResourceProviderNotRegistered          = "ResourceProviderNotRegistered"
 	CloudErrorCodeJMESPathSearchFailed               = "JMESPathSearchFailed"
 )
