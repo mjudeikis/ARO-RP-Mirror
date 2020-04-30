@@ -31,10 +31,12 @@ import (
 	"github.com/Azure/ARO-RP/pkg/util/subnet"
 )
 
+// OpenShiftClusterDynamicValidator is an interface with a Dynamic validator
 type OpenShiftClusterDynamicValidator interface {
 	Dynamic(context.Context, *api.OpenShiftCluster) error
 }
 
+// NewOpenShiftClusterDynamicValidator creates a new OpenShiftClusterDynamicValidator
 func NewOpenShiftClusterDynamicValidator(log *logrus.Entry, env env.Interface) OpenShiftClusterDynamicValidator {
 	return &openShiftClusterDynamicValidator{
 		log: log,
@@ -77,7 +79,7 @@ func (dv *openShiftClusterDynamicValidator) Dynamic(ctx context.Context, oc *api
 	}
 
 	spPermissions := authorization.NewPermissionsClient(r.SubscriptionID, spAuthorizer)
-	err = dv.validateVnetPermissions(ctx, vnet, oc, spPermissions, api.CloudErrorCodeInvalidServicePrincipalPermissions, "provided service principal")
+	err = dv.validateVnetPermissions(ctx, &vnet, oc, spPermissions, api.CloudErrorCodeInvalidServicePrincipalPermissions, "provided service principal")
 	if err != nil {
 		return err
 	}
@@ -96,7 +98,7 @@ func (dv *openShiftClusterDynamicValidator) Dynamic(ctx context.Context, oc *api
 	}
 
 	fpPermissions := authorization.NewPermissionsClient(r.SubscriptionID, fpAuthorizer)
-	err = dv.validateVnetPermissions(ctx, vnet, oc, fpPermissions, api.CloudErrorCodeInvalidResourceProviderPermissions, "resource provider")
+	err = dv.validateVnetPermissions(ctx, &vnet, oc, fpPermissions, api.CloudErrorCodeInvalidResourceProviderPermissions, "resource provider")
 	if err != nil {
 		return err
 	}
@@ -138,41 +140,18 @@ func (dv *openShiftClusterDynamicValidator) validateServicePrincipalProfile(ctx 
 	return autorest.NewBearerAuthorizer(token), nil
 }
 
-func (dv *openShiftClusterDynamicValidator) validateVnetPermissions(ctx context.Context, vnet mgmtnetwork.VirtualNetwork, oc *api.OpenShiftCluster, client authorization.PermissionsClient, code, typ string) error {
+func (dv *openShiftClusterDynamicValidator) validateVnetPermissions(ctx context.Context, vnet *mgmtnetwork.VirtualNetwork, oc *api.OpenShiftCluster, client authorization.PermissionsClient, code, typ string) error {
 	r, err := azure.ParseResourceID(*vnet.ID)
 	if err != nil {
 		return err
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
-	defer cancel()
+	err = validateActions(ctx, r, []string{
+		"Microsoft.Network/virtualNetworks/subnets/join/action",
+		"Microsoft.Network/virtualNetworks/subnets/read",
+		"Microsoft.Network/virtualNetworks/subnets/write",
+	}, client)
 
-	err = wait.PollImmediateUntil(10*time.Second, func() (bool, error) {
-		permissions, err := client.ListForResource(ctx, r.ResourceGroup, r.Provider, r.ResourceType, "", r.ResourceName)
-		if detailedErr, ok := err.(autorest.DetailedError); ok &&
-			detailedErr.StatusCode == http.StatusForbidden {
-			return false, nil
-		}
-		if err != nil {
-			return false, err
-		}
-
-		for _, action := range []string{
-			"Microsoft.Network/virtualNetworks/subnets/join/action",
-			"Microsoft.Network/virtualNetworks/subnets/read",
-			"Microsoft.Network/virtualNetworks/subnets/write",
-		} {
-			ok, err := utilpermissions.CanDoAction(permissions, action)
-			if err != nil {
-				return false, err
-			}
-			if !ok {
-				return false, nil
-			}
-		}
-
-		return true, nil
-	}, timeoutCtx.Done())
 	if err == wait.ErrWaitTimeout {
 		return api.NewCloudError(http.StatusBadRequest, code, "", "The "+typ+" does not have Contributor permission on vnet '%s'.", *vnet.ID)
 	}
@@ -186,11 +165,12 @@ func (dv *openShiftClusterDynamicValidator) validateVnetPermissions(ctx context.
 
 	// validate route table permissions
 	for _, sn := range *vnet.VirtualNetworkPropertiesFormat.Subnets {
-		if sn.RouteTable != nil {
-			err = dv.validateRouteTablePermissions(ctx, *sn.RouteTable, client, code, typ)
-			if err != nil {
-				return err
-			}
+		if sn.RouteTable == nil {
+			continue
+		}
+		err = dv.validateRouteTablePermissions(ctx, *sn.RouteTable, client, code, typ)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -203,36 +183,11 @@ func (dv *openShiftClusterDynamicValidator) validateRouteTablePermissions(ctx co
 		return err
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
-	defer cancel()
-
-	err = wait.PollImmediateUntil(10*time.Second, func() (bool, error) {
-		permissions, err := client.ListForResource(ctx, r.ResourceGroup, r.Provider, r.ResourceType, "", r.ResourceName)
-		if detailedErr, ok := err.(autorest.DetailedError); ok &&
-			detailedErr.StatusCode == http.StatusForbidden {
-			dv.log.Print(err)
-			return false, nil
-		}
-		if err != nil {
-			return false, err
-		}
-
-		for _, action := range []string{
-			"Microsoft.Network/routeTables/join/action",
-			"Microsoft.Network/routeTables/read",
-			"Microsoft.Network/routeTables/write",
-		} {
-			ok, err := utilpermissions.CanDoAction(permissions, action)
-			if err != nil {
-				return false, err
-			}
-			if !ok {
-				return false, nil
-			}
-		}
-
-		return true, nil
-	}, timeoutCtx.Done())
+	err = validateActions(ctx, r, []string{
+		"Microsoft.Network/routeTables/join/action",
+		"Microsoft.Network/routeTables/read",
+		"Microsoft.Network/routeTables/write",
+	}, client)
 	if err == wait.ErrWaitTimeout {
 		return api.NewCloudError(http.StatusBadRequest, code, "", "The "+typ+" does not have Contributor permission on route table '%s'.", *routeTable.ID)
 	}
@@ -370,4 +325,32 @@ func (dv *openShiftClusterDynamicValidator) validateProviders(ctx context.Contex
 	}
 
 	return nil
+}
+
+func validateActions(ctx context.Context, r azure.Resource, actions []string, client authorization.PermissionsClient) error {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+
+	return wait.PollImmediateUntil(10*time.Second, func() (bool, error) {
+		permissions, err := client.ListForResource(ctx, r.ResourceGroup, r.Provider, "", r.ResourceType, r.ResourceName)
+		if detailedErr, ok := err.(autorest.DetailedError); ok &&
+			detailedErr.StatusCode == http.StatusForbidden {
+			return false, nil
+		}
+		if err != nil {
+			return false, err
+		}
+
+		for _, action := range actions {
+			ok, err := utilpermissions.CanDoAction(permissions, action)
+			if err != nil {
+				return false, err
+			}
+			if !ok {
+				return false, nil
+			}
+		}
+
+		return true, nil
+	}, timeoutCtx.Done())
 }
