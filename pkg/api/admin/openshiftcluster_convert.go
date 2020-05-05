@@ -52,6 +52,10 @@ func (c *openShiftClusterConverter) ToExternal(oc *api.OpenShiftCluster) interfa
 		},
 	}
 
+	if len(oc.Properties.ClusterProfile.PullSecret) > 0 {
+		out.Properties.ClusterProfile.PullSecret = "##REDACTED##"
+	}
+
 	if oc.Properties.WorkerProfiles != nil {
 		out.Properties.WorkerProfiles = make([]WorkerProfile, 0, len(oc.Properties.WorkerProfiles))
 		for _, p := range oc.Properties.WorkerProfiles {

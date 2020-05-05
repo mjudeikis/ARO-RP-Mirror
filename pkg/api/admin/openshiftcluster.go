@@ -57,6 +57,7 @@ const (
 
 // ClusterProfile represents a cluster profile.
 type ClusterProfile struct {
+	PullSecret      string `json:"pullSecret,omitempty"`
 	Domain          string `json:"domain,omitempty"`
 	Version         string `json:"version,omitempty"`
 	ResourceGroupID string `json:"resourceGroupId,omitempty"`
