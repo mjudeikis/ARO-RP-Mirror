@@ -50,6 +50,13 @@ func (m *Manager) Create(ctx context.Context) error {
 
 	resourceGroup := stringutils.LastTokenByte(m.doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID, '/')
 
+	// ClusterPullSecret is combined secret from all RegistryProfiles
+	// Registry profiles inputs:
+	// 1. Production ACR Profile
+	// 2. Production pullSecret provided by customer. Can multiple registries/profiles
+	// 3. Development pullSecret
+
+	// configure Production ACR registry profile
 	if _, ok := m.env.(env.Dev); !ok {
 		rp := m.acrtoken.GetRegistryProfile(m.doc.OpenShiftCluster)
 		if rp == nil {
@@ -86,6 +93,51 @@ func (m *Manager) Create(ctx context.Context) error {
 		}
 	}
 
+	// development only. In production this is no-op
+	pullSecret := os.Getenv("PULL_SECRET")
+	pullSecret, err = pullsecret.Merge(pullSecret, string(m.doc.OpenShiftCluster.Properties.ClusterProfile.PullSecret))
+	if err != nil {
+		return err
+	}
+
+	// cloud.openshift.com content comes from acr
+	for _, key := range []string{"cloud.openshift.com"} {
+		pullSecret, err = pullsecret.RemoveKey(pullSecret, key)
+		if err != nil {
+			return err
+		}
+	}
+
+	existingPullSecret, err := pullsecret.ParseRegistryProfiles(m.doc.OpenShiftCluster.Properties.RegistryProfiles)
+	if err != nil {
+		return err
+	}
+
+	pullSecret, err = pullsecret.Merge(pullSecret, existingPullSecret)
+	if err != nil {
+		return err
+	}
+
+	// Create new RegistryProfile with all secrets
+	rps, err := pullsecret.GetRegistryProfiles(pullSecret)
+	if err != nil {
+		return err
+	}
+
+	m.doc, err = m.db.PatchWithLease(ctx, m.doc.Key, func(doc *api.OpenShiftClusterDocument) error {
+		doc.OpenShiftCluster.Properties.RegistryProfiles = rps
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// enrich pullSecret with RegistryProfile secrets
+	pullSecret, err = pullsecret.ParseRegistryProfiles(m.doc.OpenShiftCluster.Properties.RegistryProfiles)
+	if err != nil {
+		return err
+	}
+
 	m.doc, err = m.db.PatchWithLease(ctx, m.doc.Key, func(doc *api.OpenShiftClusterDocument) error {
 		if doc.OpenShiftCluster.Properties.SSHKey == nil {
 			sshKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -107,25 +159,6 @@ func (m *Manager) Create(ctx context.Context) error {
 	})
 	if err != nil {
 		return err
-	}
-
-	pullSecret := os.Getenv("PULL_SECRET")
-
-	pullSecret, err = pullsecret.Merge(pullSecret, string(m.doc.OpenShiftCluster.Properties.ClusterProfile.PullSecret))
-	if err != nil {
-		return err
-	}
-
-	pullSecret, err = pullsecret.SetRegistryProfiles(pullSecret, m.doc.OpenShiftCluster.Properties.RegistryProfiles...)
-	if err != nil {
-		return err
-	}
-
-	for _, key := range []string{"cloud.openshift.com"} {
-		pullSecret, err = pullsecret.RemoveKey(pullSecret, key)
-		if err != nil {
-			return err
-		}
 	}
 
 	r, err := azure.ParseResourceID(m.doc.OpenShiftCluster.ID)

@@ -6,6 +6,7 @@ package pullsecret
 import (
 	"encoding/base64"
 	"encoding/json"
+	"strings"
 
 	"github.com/Azure/ARO-RP/pkg/api"
 )
@@ -14,21 +15,9 @@ type pullSecret struct {
 	Auths map[string]map[string]interface{} `json:"auths,omitempty"`
 }
 
-func SetRegistryProfiles(_ps string, rps ...*api.RegistryProfile) (string, error) {
-	if _ps == "" {
-		_ps = "{}"
-	}
-
-	var ps *pullSecret
-
-	err := json.Unmarshal([]byte(_ps), &ps)
-	if err != nil {
-		return "", err
-	}
-
-	if ps.Auths == nil {
-		ps.Auths = map[string]map[string]interface{}{}
-	}
+func ParseRegistryProfiles(rps []*api.RegistryProfile) (string, error) {
+	var ps pullSecret
+	ps.Auths = map[string]map[string]interface{}{}
 
 	for _, rp := range rps {
 		ps.Auths[rp.Name] = map[string]interface{}{
@@ -101,4 +90,30 @@ func Validate(_ps string) error {
 	var ps *pullSecret
 
 	return json.Unmarshal([]byte(_ps), &ps)
+}
+
+func GetRegistryProfiles(_ps string) ([]*api.RegistryProfile, error) {
+	var ps *pullSecret
+	var rps []*api.RegistryProfile
+
+	err := json.Unmarshal([]byte(_ps), &ps)
+	if err != nil {
+		return nil, err
+	}
+
+	for name, auth := range ps.Auths {
+		authString, err := base64.StdEncoding.DecodeString(auth["auth"].(string))
+		if err != nil {
+			return nil, err
+		}
+
+		rp := api.RegistryProfile{
+			Name:     name,
+			Username: strings.Split(string(authString), ":")[0],
+			Password: api.SecureString(strings.Split(string(authString), ":")[1]),
+		}
+		rps = append(rps, &rp)
+	}
+
+	return rps, nil
 }
