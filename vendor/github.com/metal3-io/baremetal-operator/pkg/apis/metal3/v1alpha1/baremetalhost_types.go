@@ -1,6 +1,8 @@
 package v1alpha1
 
 import (
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -16,6 +18,10 @@ const (
 	// hosts to block delete operations until the physical host can be
 	// deprovisioned.
 	BareMetalHostFinalizer string = "baremetalhost.metal3.io"
+
+	// PausedAnnotation is the annotation that pauses the reconciliation (triggers
+	// an immediate requeue)
+	PausedAnnotation = "baremetalhost.metal3.io/paused"
 )
 
 // OperationalStatus represents the state of the host
@@ -34,6 +40,26 @@ const (
 	// OperationalStatusError is the status value for when the host
 	// has any sort of error.
 	OperationalStatusError OperationalStatus = "error"
+)
+
+// ErrorType indicates the class of problem that has caused the Host resource
+// to enter an error state.
+type ErrorType string
+
+const (
+	// RegistrationError is an error condition occurring when the
+	// controller is unable to connect to the Host's baseboard management
+	// controller.
+	RegistrationError ErrorType = "registration error"
+	// InspectionError is an error condition occurring when an attempt to
+	// obtain hardware details from the Host fails.
+	InspectionError ErrorType = "inspection error"
+	// ProvisioningError is an error condition occuring when the controller
+	// fails to provision or deprovision the Host.
+	ProvisioningError ErrorType = "provisioning error"
+	// PowerManagementError is an error condition occurring when the
+	// controller is unable to modify the power state of the Host.
+	PowerManagementError ErrorType = "power management error"
 )
 
 // ProvisioningState defines the states the provisioner will report
@@ -58,9 +84,8 @@ const (
 	// StateReady means the host can be consumed
 	StateReady ProvisioningState = "ready"
 
-	// StateValidationError means the provisioning instructions had an
-	// error
-	StateValidationError ProvisioningState = "validation error"
+	// StateAvailable means the host can be consumed
+	StateAvailable ProvisioningState = "available"
 
 	// StateProvisioning means we are writing an image to the host's
 	// disk(s)
@@ -89,6 +114,10 @@ const (
 	// StatePowerManagementError means something went wrong trying to
 	// power the server on or off.
 	StatePowerManagementError ProvisioningState = "power management error"
+
+	// StateDeleting means we are in the process of cleaning up the host
+	// ready for deletion
+	StateDeleting ProvisioningState = "deleting"
 )
 
 // BMCDetails contains the information necessary to communicate with
@@ -102,6 +131,13 @@ type BMCDetails struct {
 	// The name of the secret containing the BMC credentials (requires
 	// keys "username" and "password").
 	CredentialsName string `json:"credentialsName"`
+
+	// DisableCertificateVerification disables verification of server
+	// certificates when using HTTPS to connect to the BMC. This is
+	// required when the server certificate is self-signed, but is
+	// insecure because it allows a man-in-the-middle to intercept the
+	// connection.
+	DisableCertificateVerification bool `json:"disableCertificateVerification,omitempty"`
 }
 
 // BareMetalHostSpec defines the desired state of BareMetalHost
@@ -125,7 +161,7 @@ type BareMetalHostSpec struct {
 
 	// Which MAC address will PXE boot? This is optional for some
 	// types, but required for libvirt VMs driven by vbmc.
-	// +kubebuilder:validation:Pattern=[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}
+	// +kubebuilder:validation:Pattern=`[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}`
 	BootMACAddress string `json:"bootMACAddress,omitempty"`
 
 	// Should the server be online?
@@ -142,6 +178,10 @@ type BareMetalHostSpec struct {
 	// UserData holds the reference to the Secret containing the user
 	// data to be passed to the host before it boots.
 	UserData *corev1.SecretReference `json:"userData,omitempty"`
+
+	// NetworkData holds the reference to the Secret containing content
+	// of network_data.json which is passed to Config Drive
+	NetworkData *corev1.SecretReference `json:"networkData,omitempty"`
 
 	// Description is a human-entered text used to help identify the host
 	Description string `json:"description,omitempty"`
@@ -254,7 +294,7 @@ type NIC struct {
 	Model string `json:"model"`
 
 	// The device MAC addr
-	// +kubebuilder:validation:Pattern=[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}
+	// +kubebuilder:validation:Pattern=`[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}`
 	MAC string `json:"mac"`
 
 	// The IP address of the device
@@ -335,13 +375,46 @@ func (cs CredentialsStatus) Match(secret corev1.Secret) bool {
 	return true
 }
 
+// OperationMetric contains metadata about an operation (inspection,
+// provisioning, etc.) used for tracking metrics.
+type OperationMetric struct {
+	// +nullable
+	Start metav1.Time `json:"start,omitempty"`
+	// +nullable
+	End metav1.Time `json:"end,omitempty"`
+}
+
+// Duration returns the length of time that was spent on the
+// operation. If the operation is not finished, it returns 0.
+func (om OperationMetric) Duration() time.Duration {
+	if om.Start.IsZero() {
+		return 0
+	}
+	return om.End.Time.Sub(om.Start.Time)
+}
+
+// OperationHistory holds information about operations performed on a
+// host.
+type OperationHistory struct {
+	Register    OperationMetric `json:"register,omitempty"`
+	Inspect     OperationMetric `json:"inspect,omitempty"`
+	Provision   OperationMetric `json:"provision,omitempty"`
+	Deprovision OperationMetric `json:"deprovision,omitempty"`
+}
+
 // BareMetalHostStatus defines the observed state of BareMetalHost
 type BareMetalHostStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code
 	// after modifying this file
 
 	// OperationalStatus holds the status of the host
+	// +kubebuilder:validation:Enum="";OK;discovered;error
 	OperationalStatus OperationalStatus `json:"operationalStatus"`
+
+	// ErrorType indicates the type of failure encountered when the
+	// OperationalStatus is OperationalStatusError
+	// +kubebuilder:validation:Enum=registration error;inspection error;provisioning error;power management error
+	ErrorType ErrorType `json:"errorType,omitempty"`
 
 	// LastUpdated identifies when this status was last observed.
 	// +optional
@@ -367,6 +440,10 @@ type BareMetalHostStatus struct {
 
 	// indicator for whether or not the host is powered on
 	PoweredOn bool `json:"poweredOn"`
+
+	// OperationHistory holds information about operations performed
+	// on this host.
+	OperationHistory OperationHistory `json:"operationHistory"`
 }
 
 // ProvisionStatus holds the state information for a single target.
@@ -420,9 +497,13 @@ func (host *BareMetalHost) Available() bool {
 // SetErrorMessage updates the ErrorMessage in the host Status struct
 // when necessary and returns true when a change is made or false when
 // no change is made.
-func (host *BareMetalHost) SetErrorMessage(message string) (dirty bool) {
+func (host *BareMetalHost) SetErrorMessage(errType ErrorType, message string) (dirty bool) {
 	if host.Status.OperationalStatus != OperationalStatusError {
 		host.Status.OperationalStatus = OperationalStatusError
+		dirty = true
+	}
+	if host.Status.ErrorType != errType {
+		host.Status.ErrorType = errType
 		dirty = true
 	}
 	if host.Status.ErrorMessage != message {
@@ -435,6 +516,11 @@ func (host *BareMetalHost) SetErrorMessage(message string) (dirty bool) {
 // ClearError removes any existing error message.
 func (host *BareMetalHost) ClearError() (dirty bool) {
 	dirty = host.SetOperationalStatus(OperationalStatusOK)
+	var emptyErrType ErrorType = ""
+	if host.Status.ErrorType != emptyErrType {
+		host.Status.ErrorType = emptyErrType
+		dirty = true
+	}
 	if host.Status.ErrorMessage != "" {
 		host.Status.ErrorMessage = ""
 		dirty = true
@@ -535,9 +621,6 @@ func (host *BareMetalHost) NeedsHardwareInspection() bool {
 // status and returns true when more work is needed or false
 // otherwise.
 func (host *BareMetalHost) NeedsProvisioning() bool {
-	if host.Spec.ExternallyProvisioned {
-		return false
-	}
 	if !host.Spec.Online {
 		// The host is not supposed to be powered on.
 		return false
@@ -573,14 +656,14 @@ func (host *BareMetalHost) WasProvisioned() bool {
 // NeedsDeprovisioning compares the settings with the provisioning
 // status and returns true when the host should be deprovisioned.
 func (host *BareMetalHost) NeedsDeprovisioning() bool {
-	if host.Spec.ExternallyProvisioned {
-		return false
+	if host.Spec.Image == nil {
+		return true
+	}
+	if host.Spec.Image.URL == "" {
+		return true
 	}
 	if host.Status.Provisioning.Image.URL == "" {
 		return false
-	}
-	if host.Spec.Image == nil {
-		return true
 	}
 	if host.Spec.Image.URL != host.Status.Provisioning.Image.URL {
 		return true
@@ -624,7 +707,7 @@ func (host *BareMetalHost) NewEvent(reason, message string) corev1.Event {
 			Namespace:  host.Namespace,
 			Name:       host.Name,
 			UID:        host.UID,
-			APIVersion: SchemeGroupVersion.Version,
+			APIVersion: SchemeGroupVersion.String(),
 		},
 		Reason:  reason,
 		Message: message,
@@ -638,6 +721,23 @@ func (host *BareMetalHost) NewEvent(reason, message string) corev1.Event {
 		ReportingController: "metal3.io/baremetal-controller",
 		Related:             host.Spec.ConsumerRef,
 	}
+}
+
+// OperationMetricForState returns a pointer to the metric for the given
+// provisioning state.
+func (host *BareMetalHost) OperationMetricForState(operation ProvisioningState) (metric *OperationMetric) {
+	history := &host.Status.OperationHistory
+	switch operation {
+	case StateRegistering:
+		metric = &history.Register
+	case StateInspecting:
+		metric = &history.Inspect
+	case StateProvisioning:
+		metric = &history.Provision
+	case StateDeprovisioning:
+		metric = &history.Deprovision
+	}
+	return
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
