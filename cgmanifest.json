@@ -454,7 +454,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15",
+                    "commitHash": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5",
                     "repositoryUrl": "https://github.com/gorilla/mux/"
                 }
             }
