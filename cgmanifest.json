@@ -778,7 +778,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "cb47e810bee8c56f0738f0723c98cf3192ea7736",
+                    "commitHash": "6da5bedd85343fa6fb946fe6dbe1a9831ef34a2a",
                     "repositoryUrl": "https://github.com/openshift/console-operator/"
                 }
             }
