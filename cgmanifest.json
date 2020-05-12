@@ -382,7 +382,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "9fa652df1129bef0e734c9cf9bf6dbae9ef3b9fa",
+                    "commitHash": "3a35fb6e3e18b9dbfee291262260dee7372d2a92",
                     "repositoryUrl": "https://github.com/golang/mock/"
                 }
             }
