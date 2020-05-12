@@ -706,7 +706,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "2987a591a72cee08898c93dcc09816783d39a5bc",
+                    "commitHash": "3e8f22fb0b56808d981b0a98cd2741d31368aec5",
                     "repositoryUrl": "https://github.com/openshift/api/"
                 }
             }
