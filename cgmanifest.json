@@ -1183,7 +1183,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "1f3b2931966858d724e363b2707cb87da322fd45",
+                    "commitHash": "bb38286aebfbd8b39c317114442ed28d37c7617e",
                     "repositoryUrl": "https://github.com/kubernetes/client-go/"
                 }
             }

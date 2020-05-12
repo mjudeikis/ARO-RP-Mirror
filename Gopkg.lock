@@ -1670,7 +1670,7 @@
 
 [[projects]]
   branch = "origin-4.4-kubernetes-1.17.1"
-  digest = "1:17cead3c012417dd2dd336113138c19de2537062a0f7a08085c7adede5e464b4"
+  digest = "1:cd7322a2669aba7fe506383dc31ece3881fc3e39ccac5334360c50f946a8ade4"
   name = "k8s.io/api"
   packages = [
     "admissionregistration/v1",
@@ -1694,8 +1694,10 @@
     "coordination/v1beta1",
     "core/v1",
     "discovery/v1alpha1",
+    "discovery/v1beta1",
     "events/v1beta1",
     "extensions/v1beta1",
+    "flowcontrol/v1alpha1",
     "networking/v1",
     "networking/v1beta1",
     "node/v1alpha1",
@@ -1770,8 +1772,8 @@
   source = "https://github.com/openshift/kubernetes-apimachinery"
 
 [[projects]]
-  branch = "origin-4.3-kubernetes-1.16.2"
-  digest = "1:121980454af2ecc796d3d5c7bf3a4e52773c5aa6b1d7e7528140f76ab70c2f5f"
+  branch = "origin-4.4-kubernetes-1.17.1"
+  digest = "1:df0cc86f0f9a6330a62dd0305bbf3837c4438237aa212710483e1e5f47943cb2"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1822,10 +1824,14 @@
     "kubernetes/typed/core/v1/fake",
     "kubernetes/typed/discovery/v1alpha1",
     "kubernetes/typed/discovery/v1alpha1/fake",
+    "kubernetes/typed/discovery/v1beta1",
+    "kubernetes/typed/discovery/v1beta1/fake",
     "kubernetes/typed/events/v1beta1",
     "kubernetes/typed/events/v1beta1/fake",
     "kubernetes/typed/extensions/v1beta1",
     "kubernetes/typed/extensions/v1beta1/fake",
+    "kubernetes/typed/flowcontrol/v1alpha1",
+    "kubernetes/typed/flowcontrol/v1alpha1/fake",
     "kubernetes/typed/networking/v1",
     "kubernetes/typed/networking/v1/fake",
     "kubernetes/typed/networking/v1beta1",
@@ -1878,9 +1884,10 @@
     "util/homedir",
     "util/keyutil",
     "util/retry",
+    "util/workqueue",
   ]
   pruneopts = "UT"
-  revision = "1f3b2931966858d724e363b2707cb87da322fd45"
+  revision = "bb38286aebfbd8b39c317114442ed28d37c7617e"
   source = "https://github.com/openshift/kubernetes-client-go"
 
 [[projects]]
