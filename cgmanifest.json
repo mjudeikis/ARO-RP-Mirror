@@ -1228,7 +1228,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "86ecb23daa83c78761414a7abcb169c73c18a756",
+                    "commitHash": "25bb1938f3aab45f600c0c1b46af11d7a5ccd368",
                     "repositoryUrl": "https://sigs.k8s.io/cluster-api-provider-azure/"
                 }
             }
