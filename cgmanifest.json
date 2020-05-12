@@ -1174,7 +1174,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "46c5f7baf5456058e6999b176e1bdb87668c7c9d",
+                    "commitHash": "79c2a76c473a20cdc4ce59cae4b72529b5d9d16b",
                     "repositoryUrl": "https://github.com/kubernetes/apimachinery/"
                 }
             }
