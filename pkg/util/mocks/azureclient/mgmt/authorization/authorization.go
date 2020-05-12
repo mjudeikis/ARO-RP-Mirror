@@ -6,9 +6,10 @@ package mock_authorization
 
 import (
 	context "context"
+	reflect "reflect"
+
 	authorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockPermissionsClient is a mock of PermissionsClient interface
