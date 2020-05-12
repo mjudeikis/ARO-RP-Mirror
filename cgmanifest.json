@@ -1165,7 +1165,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "b2607acfca124f576c98e5e9ad8d22184518b6dd",
+                    "commitHash": "7643814f1c97f24ccfb38c2b85a7bb3c7f494346",
                     "repositoryUrl": "https://github.com/kubernetes/api/"
                 }
             }
