@@ -598,7 +598,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "81ee999993403b111183ca496ba2a987cc7e59e6",
+                    "commitHash": "d24ad611372b0ca5cb15b81f950f32664212daf8",
                     "repositoryUrl": "https://github.com/metal3-io/baremetal-operator/"
                 }
             }

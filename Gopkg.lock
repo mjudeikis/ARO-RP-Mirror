@@ -751,7 +751,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b79e6a0ba1e0e21024ba285da0c16b72be2f154844fb16fb9ce0402e758003cf"
+  digest = "1:3d67c4e890d5853179204e33a730ceb60914c703d5f39e1745492a7b40a58b2d"
   name = "github.com/metal3-io/baremetal-operator"
   packages = [
     "pkg/apis/metal3/v1alpha1",
@@ -759,7 +759,7 @@
     "pkg/hardware",
   ]
   pruneopts = "UT"
-  revision = "81ee999993403b111183ca496ba2a987cc7e59e6"
+  revision = "d24ad611372b0ca5cb15b81f950f32664212daf8"
   source = "https://github.com/openshift/baremetal-operator"
 
 [[projects]]
@@ -2018,6 +2018,7 @@
     "github.com/jim-minter/go-cosmosdb/cmd/gencosmosdb",
     "github.com/jmespath/go-jmespath",
     "github.com/jstemmer/go-junit-report",
+    "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/format",
