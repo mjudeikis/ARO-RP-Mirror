@@ -966,12 +966,12 @@
   revision = "b09907ac666894610ad44787def00be738c8a2f1"
 
 [[projects]]
-  branch = "release-4.3"
+  branch = "release-4.4"
   digest = "1:9d86fe2d97d035702ab624b98c8bdb64436bafcba5538b26f3263f7e1a053f41"
   name = "github.com/openshift/cluster-api-provider-azure"
   packages = ["pkg/apis/azureprovider/v1beta1"]
   pruneopts = "UT"
-  revision = "86ecb23daa83c78761414a7abcb169c73c18a756"
+  revision = "25bb1938f3aab45f600c0c1b46af11d7a5ccd368"
 
 [[projects]]
   branch = "master"
@@ -1128,8 +1128,8 @@
   source = "github.com/openshift/machine-api-operator"
 
 [[projects]]
-  branch = "release-4.3"
-  digest = "1:4e5ae751b5ab70dafe0109f5edd432b142a8256c37ac348d8758eb18059dd07c"
+  branch = "release-4.4"
+  digest = "1:9e7c4a0c38718e50afa2b68af42898ee83d2a8802443b065e0d08f8d3b8ef27e"
   name = "github.com/openshift/machine-config-operator"
   packages = [
     "pkg/apis/machineconfiguration.openshift.io/v1",
@@ -1140,7 +1140,7 @@
     "pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1/fake",
   ]
   pruneopts = "UT"
-  revision = "25bb6aeb58135c38a667e849edf5244871be4992"
+  revision = "480accd5d4f631d34e560aa5c8a3dfab0c7bbe27"
 
 [[projects]]
   branch = "master"
@@ -2008,6 +2008,7 @@
     "github.com/go-bindata/go-bindata/go-bindata",
     "github.com/golang/mock/gomock",
     "github.com/golang/mock/mockgen",
+    "github.com/golang/mock/mockgen/model",
     "github.com/google/go-cmp/cmp",
     "github.com/gorilla/mux",
     "github.com/jim-minter/go-cosmosdb/cmd/gencosmosdb",
