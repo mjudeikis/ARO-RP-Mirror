@@ -715,7 +715,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "f6563a70e19a12b2f240eaf4e716ef75baf7003e",
+                    "commitHash": "92a2713fa240ea8a375a982d60b43ef5119f85ba",
                     "repositoryUrl": "https://github.com/openshift/client-go/"
                 }
             }
@@ -733,7 +733,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "9a3a7bbe9258f5c3117cb2aba6a560babe0d59f8",
+                    "commitHash": "b09907ac666894610ad44787def00be738c8a2f1",
                     "repositoryUrl": "https://github.com/openshift/cluster-api/"
                 }
             }
@@ -771,15 +771,6 @@
                 "git": {
                     "commitHash": "0966db28bce37ca97ada41c69f48ffa7c4d02493",
                     "repositoryUrl": "https://github.com/openshift/cluster-api-provider-ovirt/"
-                }
-            }
-        },
-        {
-            "component": {
-                "type": "git",
-                "git": {
-                    "commitHash": "bfda4d3462fd7305573adb103137723d2bd4975c",
-                    "repositoryUrl": "https://github.com/openshift/cluster-samples-operator/"
                 }
             }
         },
