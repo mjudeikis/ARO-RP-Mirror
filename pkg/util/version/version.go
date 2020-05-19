@@ -4,9 +4,11 @@ package version
 // Licensed under the Apache License 2.0.
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var rxVersion = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)(.*)`)
@@ -14,6 +16,14 @@ var rxVersion = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)(.*)`)
 type Version struct {
 	V      [3]byte
 	Suffix string
+}
+
+func (v *Version) String() string {
+	s := make([]string, len(v.V))
+	for i := range v.V {
+		s[i] = strconv.Itoa(int(v.V[i]))
+	}
+	return strings.Join(s, ".")
 }
 
 func NewVersion(vs ...byte) *Version {
@@ -57,4 +67,27 @@ func (v *Version) Lt(w *Version) bool {
 	}
 
 	return false
+}
+
+func (v *Version) Eq(w *Version) bool {
+	return bytes.Compare(v.V[:], w.V[:]) == 0
+}
+
+func GetUpgrade(v *Version) (*Upgrade, error) {
+	for _, u := range Upgrades {
+		if u.Version.V[0] == v.V[0] &&
+			u.Version.V[1] == v.V[1] {
+			return &u, nil
+		}
+	}
+	return nil, fmt.Errorf("upgrade for %d not found", v.V[:])
+}
+
+func GetLatest() (*Upgrade, error) {
+	for _, u := range Upgrades {
+		if u.Latest {
+			return &u, nil
+		}
+	}
+	return nil, fmt.Errorf("latest version not not found")
 }

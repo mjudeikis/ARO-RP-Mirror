@@ -7,9 +7,11 @@ import (
 	"testing"
 )
 
-func TestOpenShiftVersion(t *testing.T) {
-	_, err := ParseVersion(OpenShiftVersion)
-	if err != nil {
-		t.Error(err)
+func TestOpenShiftVersions(t *testing.T) {
+	for _, u := range Upgrades {
+		_, err := ParseVersion(u.Version.String())
+		if err != nil {
+			t.Error(err)
+		}
 	}
 }

@@ -79,6 +79,11 @@ func (ka *kubeactions) MustGather(ctx context.Context, oc *api.OpenShiftCluster,
 		}
 	}()
 
+	latest, err := version.GetLatest()
+	if err != nil {
+		return err
+	}
+
 	pod, err := cli.CoreV1().Pods(ns.Name).Create(&corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "must-gather",
@@ -96,7 +101,7 @@ func (ka *kubeactions) MustGather(ctx context.Context, oc *api.OpenShiftCluster,
 			InitContainers: []corev1.Container{
 				{
 					Name:  "gather",
-					Image: version.OpenShiftMustGather,
+					Image: latest.MustGather,
 					Command: []string{
 						"/usr/bin/gather",
 					},
@@ -111,7 +116,7 @@ func (ka *kubeactions) MustGather(ctx context.Context, oc *api.OpenShiftCluster,
 			Containers: []corev1.Container{
 				{
 					Name:  "copy",
-					Image: version.OpenShiftMustGather,
+					Image: latest.MustGather,
 					Command: []string{
 						"sleep",
 						"infinity",

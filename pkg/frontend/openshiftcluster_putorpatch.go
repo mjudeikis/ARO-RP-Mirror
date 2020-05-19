@@ -66,6 +66,11 @@ func (f *frontend) _putOrPatchOpenShiftCluster(ctx context.Context, r *http.Requ
 			return nil, err
 		}
 
+		latest, err := version.GetLatest()
+		if err != nil {
+			return nil, err
+		}
+
 		doc = &api.OpenShiftClusterDocument{
 			ID:  uuid.NewV4().String(),
 			Key: r.URL.Path,
@@ -76,7 +81,7 @@ func (f *frontend) _putOrPatchOpenShiftCluster(ctx context.Context, r *http.Requ
 				Properties: api.OpenShiftClusterProperties{
 					ProvisioningState: api.ProvisioningStateSucceeded,
 					ClusterProfile: api.ClusterProfile{
-						Version: version.OpenShiftVersion,
+						Version: latest.Version.String(),
 					},
 					ServicePrincipalProfile: api.ServicePrincipalProfile{
 						TenantID: subdoc.Subscription.Properties.TenantID,

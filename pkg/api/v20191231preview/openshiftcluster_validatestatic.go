@@ -134,9 +134,13 @@ func (sv *openShiftClusterStaticValidator) validateClusterProfile(path string, c
 		strings.ContainsRune(strings.TrimSuffix(cp.Domain, "."+sv.domain), '.') {
 		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".domain", "The provided domain '%s' is invalid.", cp.Domain)
 	}
-	if isCreate && cp.Version != version.OpenShiftVersion {
-		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".version", "The provided version '%s' is invalid.", cp.Version)
+
+	if isCreate {
+		if err := sv.validateVersion(path, cp.Version); err != nil {
+			return err
+		}
 	}
+
 	if !validate.RxResourceGroupID.MatchString(cp.ResourceGroupID) {
 		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".resourceGroupId", "The provided resource group '%s' is invalid.", cp.ResourceGroupID)
 	}
@@ -144,6 +148,21 @@ func (sv *openShiftClusterStaticValidator) validateClusterProfile(path string, c
 		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".resourceGroupId", "The provided resource group '%s' is invalid: must be in same subscription as cluster.", cp.ResourceGroupID)
 	}
 
+	return nil
+}
+
+func (sv *openShiftClusterStaticValidator) validateVersion(path string, _v string) error {
+	v, err := version.ParseVersion(_v)
+	if err != nil {
+		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".version", "The provided version '%s' is invalid.", _v)
+	}
+	latest, err := version.GetLatest()
+	if err != nil {
+		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".version", "The provided version '%s' is not found.", _v)
+	}
+	if !v.Eq(latest.Version) {
+		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".version", "The provided version '%s' is invalid.", _v)
+	}
 	return nil
 }
 

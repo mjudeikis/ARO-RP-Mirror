@@ -306,8 +306,18 @@ func (m *Manager) Create(ctx context.Context) error {
 	}
 
 	image := &releaseimage.Image{}
-	if m.doc.OpenShiftCluster.Properties.ClusterProfile.Version == version.OpenShiftVersion {
-		image.PullSpec = version.OpenShiftPullSpec
+	v, err := version.ParseVersion(m.doc.OpenShiftCluster.Properties.ClusterProfile.Version)
+	if err != nil {
+		return err
+	}
+
+	latest, err := version.GetLatest()
+	if err != nil {
+		return err
+	}
+
+	if v.Eq(latest.Version) {
+		image.PullSpec = latest.PullSpec
 	} else {
 		return fmt.Errorf("unimplemented version %q", m.doc.OpenShiftCluster.Properties.ClusterProfile.Version)
 	}
