@@ -27,15 +27,15 @@ jobs:
     vmImage: ubuntu-latest
 
   steps:
-    - template: ./template-setup-golang-env.yml
-      parameters:
-        gobin: ${{ variables.GOBIN }}
-        gopath: ${{ variables.GOPATH }}
-        goroot: ${{ variables.GOROOT }}
-        modulePath: ${{ variables.modulePath }}
+  - template: ./template-setup-golang-env.yml
+    parameters:
+      gobin: ${{ variables.GOBIN }}
+      gopath: ${{ variables.GOPATH }}
+      goroot: ${{ variables.GOROOT }}
+      modulePath: ${{ variables.modulePath }}
 
-    - script: |
-        set -e
+  - script: |
+      set -e
 
         echo ${{ parameters.subscriptionCredentials }} | base64 -d -w 0 > spn.json
         export AZURE_CLIENT_ID=$(cat spn.json | jq -r '.clientId')
