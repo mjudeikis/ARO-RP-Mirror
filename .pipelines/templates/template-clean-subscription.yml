@@ -1,25 +1,25 @@
 parameters:
-  - name: purgeTTL
-    displayName: 'Timeout before resources are force cleaned.'
-    type: string
-    default: '6h'
-  - name: purgeCreatedTag
-    displayName: 'Name of the tag used in subscription marking created at'
-    type: string
-  - name: subscriptionCredentials
-    displayName: 'Subscription properties required to login'
-    type: string
-    default: ''
-  - name: subscriptionId
-    displayName: 'SubscriptionId to clean'
-    type: string
-    default: ''
-  - name: workingDirectory
-    type: string
-    default: ''
-  - name: dryRun
-    type: bool
-    default: false
+- name: purgeTTL
+  displayName: Timeout before resources are force cleaned.
+  type: string
+  default: 6h
+- name: subscriptionCredentials
+  displayName: Subscription properties required to login
+  type: string
+  default: ''
+- name: subscriptionId
+  displayName: SubscriptionId to clean
+  type: string
+  default: ''
+- name: workingDirectory
+  type: string
+  default: ''
+- name: dryRun
+  type: bool
+  default: false
+- name: resourceGroupDeletePrefix
+  type: string
+  default: v4-e2e-rg-,aro-v4-e2e-rg-
 
 jobs:
 - job: Clean_E2E
@@ -36,17 +36,16 @@ jobs:
 
   - script: |
       set -e
+      echo ${{ parameters.subscriptionCredentials }} | base64 -d -w 0 > spn.json
+      export AZURE_CLIENT_ID=$(cat spn.json | jq -r '.clientId')
+      export AZURE_CLIENT_SECRET=$(cat spn.json | jq -r '.clientSecret')
+      export AZURE_TENANT_ID=$(cat spn.json | jq -r '.tenantId')
+      export AZURE_SUBSCRIPTION_ID=$(parameters.subscriptionId)
+      rm spn.json
 
-        echo ${{ parameters.subscriptionCredentials }} | base64 -d -w 0 > spn.json
-        export AZURE_CLIENT_ID=$(cat spn.json | jq -r '.clientId')
-        export AZURE_CLIENT_SECRET=$(cat spn.json | jq -r '.clientSecret')
-        export AZURE_TENANT_ID=$(cat spn.json | jq -r '.tenantId')
-        export AZURE_SUBSCRIPTION_ID=$(parameters.subscriptionId)
-        export AZURE_PURGE_TTL="${{ parameters.purgeTTL }}""
-        export AZURE_PURGE_DRYRUN="${{ parameters.dryRun }}"
-        export AZURE_PURGE_CREATED_TAG="${{ parameters.purgeCreatedTag }}"
-        rm spn.json
+      export AZURE_PURGE_RG_DEL_PREFIX="${{ parameters.resourceGroupDeletePrefix }}""
+      export AZURE_PURGE_TTL="${{ parameters.purgeTTL }}"
 
-        go run ./hack/clean.go 
-      workingDirectory: ${{ parameters.workingDirectory }}
-      displayName: 🧹 Clean E2E subscription
+      go run ./hack/clean.go --dryRun="${{ parameters.dryRun }}"
+    workingDirectory: ${{ parameters.workingDirectory }}
+    displayName: 🧹 Clean E2E subscription

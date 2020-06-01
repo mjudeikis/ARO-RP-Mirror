@@ -12,10 +12,10 @@ jobs:
   steps:
   - template: ./templates/template-clean-subscription.yml
     parameters:
-      purgeTTL: $(purgeTTL) 
-      purgeCreatedTag: $(purgeCreatedTag)
-      dryRun: $(purgeDryRun) 
+      purgeTTL: $(purgeTTL)
+      dryRun: $(dryRun)
       workingDirectory: ${{ variables.modulePath }}
-      subscriptionCredential: $(rhdev-purge)
-      subscriptionId: $(rh-subscription)
+      subscriptionCredential: $(subscription-credential)
+      subscriptionId: $(subscriptionId)
+      resourceGroupDeletePrefix: $(resourceGroupDeletePrefix)
 

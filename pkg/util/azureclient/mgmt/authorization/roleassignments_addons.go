@@ -11,11 +11,11 @@ import (
 
 // RoleAssignmentsClientAddons contains addons for RoleassRoleAssignmentsClient
 type RoleAssignmentsClientAddons interface {
-	List(ctx context.Context, filter string) (roleassignments []mgmtauthorization.RoleAssignment, err error)
+	ListForScope(ctx context.Context, scope, filter string) (roleassignments []mgmtauthorization.RoleAssignment, err error)
 }
 
-func (c *roleAssignmentsClient) List(ctx context.Context, resourceGroupName string) (roleassignments []mgmtauthorization.RoleAssignment, err error) {
-	page, err := c.RoleAssignmentsClient.List(ctx, resourceGroupName)
+func (c *roleAssignmentsClient) ListForScope(ctx context.Context, scope, filter string) (roleassignments []mgmtauthorization.RoleAssignment, err error) {
+	page, err := c.RoleAssignmentsClient.ListForScope(ctx, scope, filter)
 	if err != nil {
 		return nil, err
 	}
