@@ -158,10 +158,10 @@ func (sv *openShiftClusterStaticValidator) validateVersion(path string, _v strin
 	}
 	latest, err := version.GetLatest()
 	if err != nil {
-		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".version", "The provided version '%s' is not found.", _v)
+		return err
 	}
 	if !v.Eq(latest.Version) {
-		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".version", "The provided version '%s' is invalid.", _v)
+		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".version", "The provided version '%s' is not supported. Supported version: %s", _v, *latest.Version)
 	}
 	return nil
 }

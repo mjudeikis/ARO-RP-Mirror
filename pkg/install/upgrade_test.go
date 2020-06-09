@@ -50,13 +50,13 @@ func TestUpgradeCluster(t *testing.T) {
 		fakecli        *fake.Clientset
 		desiredVersion string
 		wantUpdated    bool
-		wantErr        bool
+		wantErr        string
 	}{
 		{
 			name:        "non-existing version - no update",
 			fakecli:     newFakecli("", "0.0.0"),
 			wantUpdated: false,
-			wantErr:     true,
+			wantErr:     "upgrade for [0 0 0] not found",
 		},
 		{
 			name:    "right version, no update needed",
@@ -101,7 +101,8 @@ func TestUpgradeCluster(t *testing.T) {
 			}
 
 			err := i.upgradeCluster(ctx)
-			if err != nil && !tt.wantErr {
+			if err != nil && err.Error() != tt.wantErr ||
+				err == nil && tt.wantErr != "" {
 				t.Error(err)
 			}
 

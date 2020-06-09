@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 var rxVersion = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)(.*)`)
@@ -19,11 +18,7 @@ type Version struct {
 }
 
 func (v *Version) String() string {
-	s := make([]string, len(v.V))
-	for i := range v.V {
-		s[i] = strconv.Itoa(int(v.V[i]))
-	}
-	return strings.Join(s, ".")
+	return fmt.Sprintf("%d.%d.%d", v.V[0], v.V[1], v.V[2])
 }
 
 func NewVersion(vs ...byte) *Version {
