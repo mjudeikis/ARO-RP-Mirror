@@ -18,9 +18,9 @@ var (
 			MustGather: "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:2e10ad0fc17f39c7a83aac32a725c78d7dd39cd9bbe3ec5ca0b76dcaa98416fa",
 		},
 		{
-			Version:    NewVersion(4, 4, 3),
-			PullSpec:   "quay.io/openshift-release-dev/ocp-release@sha256:039a4ef7c128a049ccf916a1d68ce93e8f5494b44d5a75df60c85e9e7191dacc",
-			MustGather: "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6326b78d6c05d9925576ae8c6768f7ee846b8e99618da670b5e7b698e1dd433a",
+			Version:    NewVersion(4, 4, 6),
+			PullSpec:   "quay.io/openshift-release-dev/ocp-release@sha256:7613d8f7db639147b91b16b54b24cfa351c3cbde6aa7b7bf1b9c80c260efad06",
+			MustGather: "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4206d834810d5e8e5fd28445c4ee81d27a1265fe01022b00f0e5193d95fb5bc2",
 			Latest:     true,
 		},
 	}
