@@ -24,7 +24,7 @@ import (
 )
 
 func (i *Installer) deployResourceTemplate(ctx context.Context) error {
-	g, err := i.loadGraph(ctx)
+	g, err := i.graph.Load(ctx)
 	if err != nil {
 		return err
 	}

@@ -4,12 +4,10 @@ package install
 // Licensed under the Apache License 2.0.
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -26,7 +24,6 @@ import (
 	operatorclient "github.com/openshift/client-go/operator/clientset/versioned"
 	securityclient "github.com/openshift/client-go/security/clientset/versioned"
 	samplesclient "github.com/openshift/cluster-samples-operator/pkg/generated/clientset/versioned"
-	"github.com/openshift/installer/pkg/asset/ignition/bootstrap"
 	"github.com/openshift/installer/pkg/asset/installconfig"
 	"github.com/openshift/installer/pkg/asset/releaseimage"
 	"github.com/sirupsen/logrus"
@@ -45,6 +42,7 @@ import (
 	"github.com/Azure/ARO-RP/pkg/util/billing"
 	"github.com/Azure/ARO-RP/pkg/util/dns"
 	"github.com/Azure/ARO-RP/pkg/util/encryption"
+	"github.com/Azure/ARO-RP/pkg/util/graph"
 	"github.com/Azure/ARO-RP/pkg/util/keyvault"
 	"github.com/Azure/ARO-RP/pkg/util/privateendpoint"
 	"github.com/Azure/ARO-RP/pkg/util/restconfig"
@@ -81,6 +79,7 @@ type Installer struct {
 	configcli     configclient.Interface
 	samplescli    samplesclient.Interface
 	securitycli   securityclient.Interface
+	graph         graph.Interface
 }
 
 const (
@@ -121,6 +120,11 @@ func NewInstaller(ctx context.Context, log *logrus.Entry, _env env.Interface, db
 		return nil, err
 	}
 
+	gr, err := graph.New(ctx, log, _env, doc.OpenShiftCluster)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Installer{
 		log:          log,
 		env:          _env,
@@ -143,14 +147,17 @@ func NewInstaller(ctx context.Context, log *logrus.Entry, _env env.Interface, db
 		keyvault:        keyvault.NewManager(localFPKVAuthorizer),
 		privateendpoint: privateendpoint.NewManager(_env, localFPAuthorizer),
 		subnet:          subnet.NewManager(r.SubscriptionID, fpAuthorizer),
+		graph:           gr,
 	}, nil
 }
 
 func (i *Installer) AdminUpgrade(ctx context.Context) error {
 	steps := []interface{}{
+		action(i.exposeEtcd), // api server might be dead.
 		action(i.initializeKubernetesClients),
 		action(i.startVMs),
 		condition{i.apiServersReady, 30 * time.Minute},
+		action(i.fixPVC),
 		action(i.ensureBillingRecord), // belt and braces
 		action(i.fixLBProbes),
 		action(i.fixPullSecret),
@@ -332,82 +339,6 @@ func (i *Installer) getBlobService(ctx context.Context, p mgmtstorage.Permission
 	c := azstorage.NewAccountSASClient("cluster"+i.doc.OpenShiftCluster.Properties.StorageSuffix, v, azure.PublicCloud).GetBlobService()
 
 	return &c, nil
-}
-
-func (i *Installer) graphExists(ctx context.Context) (bool, error) {
-	i.log.Print("checking if graph exists")
-
-	blobService, err := i.getBlobService(ctx, mgmtstorage.Permissions("r"), mgmtstorage.SignedResourceTypesO)
-	if err != nil {
-		return false, err
-	}
-
-	aro := blobService.GetContainerReference("aro")
-	return aro.GetBlobReference("graph").Exists()
-}
-
-func (i *Installer) loadGraph(ctx context.Context) (graph, error) {
-	i.log.Print("load graph")
-
-	blobService, err := i.getBlobService(ctx, mgmtstorage.Permissions("r"), mgmtstorage.SignedResourceTypesO)
-	if err != nil {
-		return nil, err
-	}
-
-	aro := blobService.GetContainerReference("aro")
-	cluster := aro.GetBlobReference("graph")
-	rc, err := cluster.Get(nil)
-	if err != nil {
-		return nil, err
-	}
-	defer rc.Close()
-
-	encrypted, err := ioutil.ReadAll(rc)
-	if err != nil {
-		return nil, err
-	}
-
-	output, err := i.cipher.Decrypt(encrypted)
-	if err != nil {
-		return nil, err
-	}
-
-	var g graph
-	err = json.Unmarshal(output, &g)
-	if err != nil {
-		return nil, err
-	}
-
-	return g, nil
-}
-
-func (i *Installer) saveGraph(ctx context.Context, g graph) error {
-	i.log.Print("save graph")
-
-	blobService, err := i.getBlobService(ctx, mgmtstorage.Permissions("cw"), mgmtstorage.SignedResourceTypesO)
-	if err != nil {
-		return err
-	}
-
-	bootstrap := g[reflect.TypeOf(&bootstrap.Bootstrap{})].(*bootstrap.Bootstrap)
-	bootstrapIgn := blobService.GetContainerReference("ignition").GetBlobReference("bootstrap.ign")
-	err = bootstrapIgn.CreateBlockBlobFromReader(bytes.NewReader(bootstrap.File.Data), nil)
-	if err != nil {
-		return err
-	}
-
-	graph := blobService.GetContainerReference("aro").GetBlobReference("graph")
-	b, err := json.MarshalIndent(g, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	output, err := i.cipher.Encrypt(b)
-	if err != nil {
-		return err
-	}
-
-	return graph.CreateBlockBlobFromReader(bytes.NewReader([]byte(output)), nil)
 }
 
 // initializeKubernetesClients initializes clients which are used

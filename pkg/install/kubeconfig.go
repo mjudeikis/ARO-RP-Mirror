@@ -13,11 +13,13 @@ import (
 	"github.com/openshift/installer/pkg/asset/kubeconfig"
 	"github.com/openshift/installer/pkg/asset/tls"
 	clientcmd "k8s.io/client-go/tools/clientcmd/api/v1"
+
+	"github.com/Azure/ARO-RP/pkg/util/graph"
 )
 
 // generateAROServiceKubeconfig generates additional admin credentials and kubeconfig
 // based on admin kubeconfig found in graph
-func (i *Installer) generateAROServiceKubeconfig(g graph) (*kubeconfig.AdminInternalClient, error) {
+func (i *Installer) generateAROServiceKubeconfig(g graph.Graph) (*kubeconfig.AdminInternalClient, error) {
 	ca := g[reflect.TypeOf(&tls.AdminKubeConfigSignerCertKey{})].(*tls.AdminKubeConfigSignerCertKey)
 	cfg := &tls.CertCfg{
 		Subject:      pkix.Name{CommonName: "system:aro-service", Organization: []string{"system:masters"}},

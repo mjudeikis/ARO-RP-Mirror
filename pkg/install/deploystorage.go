@@ -34,6 +34,7 @@ import (
 	"github.com/Azure/ARO-RP/pkg/util/arm"
 	"github.com/Azure/ARO-RP/pkg/util/azureclient"
 	"github.com/Azure/ARO-RP/pkg/util/azureclient/graphrbac"
+	"github.com/Azure/ARO-RP/pkg/util/graph"
 	"github.com/Azure/ARO-RP/pkg/util/stringutils"
 	"github.com/Azure/ARO-RP/pkg/util/subnet"
 )
@@ -256,7 +257,7 @@ func (i *Installer) deployStorageTemplate(ctx context.Context, installConfig *in
 		return err
 	}
 
-	exists, err := i.graphExists(ctx)
+	exists, err := i.graph.Exists(ctx)
 	if err != nil || exists {
 		return err
 	}
@@ -266,7 +267,7 @@ func (i *Installer) deployStorageTemplate(ctx context.Context, installConfig *in
 		InfraID: infraID,
 	}
 
-	g := graph{
+	g := graph.Graph{
 		reflect.TypeOf(installConfig): installConfig,
 		reflect.TypeOf(platformCreds): platformCreds,
 		reflect.TypeOf(image):         image,
@@ -275,18 +276,18 @@ func (i *Installer) deployStorageTemplate(ctx context.Context, installConfig *in
 
 	i.log.Print("resolving graph")
 	for _, a := range targets.Cluster {
-		_, err := g.resolve(a)
+		_, err := g.Resolve(a)
 		if err != nil {
 			return err
 		}
 	}
 
 	// the graph is quite big so we store it in a storage account instead of in cosmosdb
-	return i.saveGraph(ctx, g)
+	return i.graph.Save(ctx, g)
 }
 
 func (i *Installer) attachNSGsAndPatch(ctx context.Context) error {
-	g, err := i.loadGraph(ctx)
+	g, err := i.graph.Load(ctx)
 	if err != nil {
 		return err
 	}

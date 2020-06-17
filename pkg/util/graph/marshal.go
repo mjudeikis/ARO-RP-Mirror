@@ -1,7 +1,4 @@
-package install
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the Apache License 2.0.
+package graph
 
 import (
 	"encoding/json"
@@ -11,7 +8,7 @@ import (
 	"github.com/openshift/installer/pkg/asset"
 )
 
-func (g graph) MarshalJSON() ([]byte, error) {
+func (g Graph) MarshalJSON() ([]byte, error) {
 	m := map[string]asset.Asset{}
 	for t, a := range g {
 		m[t.String()] = a
@@ -19,9 +16,9 @@ func (g graph) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-func (g *graph) UnmarshalJSON(b []byte) error {
+func (g *Graph) UnmarshalJSON(b []byte) error {
 	if *g == nil {
-		*g = graph{}
+		*g = Graph{}
 	}
 
 	var m map[string]json.RawMessage
@@ -33,7 +30,9 @@ func (g *graph) UnmarshalJSON(b []byte) error {
 	for n, b := range m {
 		t, found := registeredTypes[n]
 		if !found {
-			return fmt.Errorf("unregistered type %q", n)
+			// TODO : return fmt.Errorf("unregistered type %q", n)
+			fmt.Printf("unregistered type %q", n)
+			continue
 		}
 
 		a := reflect.New(reflect.TypeOf(t).Elem()).Interface().(asset.Asset)

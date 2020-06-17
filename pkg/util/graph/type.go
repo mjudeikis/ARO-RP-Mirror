@@ -1,11 +1,6 @@
-package install
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the Apache License 2.0.
+package graph
 
 import (
-	"reflect"
-
 	"github.com/openshift/installer/pkg/asset"
 	"github.com/openshift/installer/pkg/asset/cluster"
 	"github.com/openshift/installer/pkg/asset/ignition/bootstrap"
@@ -22,6 +17,8 @@ import (
 	"github.com/openshift/installer/pkg/asset/templates/content/openshift"
 	"github.com/openshift/installer/pkg/asset/tls"
 )
+
+var sink *asset.Asset
 
 var registeredTypes = map[string]asset.Asset{
 	"*bootkube.CVOOverrides":                                  &bootkube.CVOOverrides{},
@@ -121,26 +118,4 @@ var registeredTypes = map[string]asset.Asset{
 	"*tls.MCSCertKey":                                         &tls.MCSCertKey{},
 	"*tls.RootCA":                                             &tls.RootCA{},
 	"*tls.ServiceAccountKeyPair":                              &tls.ServiceAccountKeyPair{},
-}
-
-type graph map[reflect.Type]asset.Asset
-
-func (g graph) resolve(a asset.Asset) (asset.Asset, error) {
-	if _, found := g[reflect.TypeOf(a)]; !found {
-		for _, dep := range a.Dependencies() {
-			_, err := g.resolve(dep)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		err := a.Generate(asset.Parents(g))
-		if err != nil {
-			return nil, err
-		}
-
-		g[reflect.TypeOf(a)] = a
-	}
-
-	return g[reflect.TypeOf(a)], nil
 }

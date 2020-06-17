@@ -24,6 +24,7 @@ import (
 	"github.com/Azure/ARO-RP/pkg/api"
 	"github.com/Azure/ARO-RP/pkg/database"
 	"github.com/Azure/ARO-RP/pkg/env"
+	"github.com/Azure/ARO-RP/pkg/frontend/etcd"
 	"github.com/Azure/ARO-RP/pkg/frontend/kubeactions"
 	"github.com/Azure/ARO-RP/pkg/frontend/middleware"
 	"github.com/Azure/ARO-RP/pkg/metrics"
@@ -42,6 +43,7 @@ func (err statusCodeError) Error() string {
 	return fmt.Sprintf("%d", err)
 }
 
+type etcdActionsFactory func(*logrus.Entry, env.Interface) etcd.Interface
 type kubeActionsFactory func(*logrus.Entry, env.Interface) kubeactions.Interface
 type resourcesClientFactory func(subscriptionID string, authorizer autorest.Authorizer) features.ResourcesClient
 type computeClientFactory func(subscriptionID string, authorizer autorest.Authorizer) compute.VirtualMachinesClient
@@ -54,8 +56,10 @@ type frontend struct {
 	m       metrics.Interface
 	cipher  encryption.Cipher
 
-	ocEnricher             clusterdata.OpenShiftClusterEnricher
-	kubeActionsFactory     kubeActionsFactory
+	ocEnricher         clusterdata.OpenShiftClusterEnricher
+	etcdActionsFactory etcdActionsFactory
+	kubeActionsFactory kubeActionsFactory
+
 	resourcesClientFactory resourcesClientFactory
 	computeClientFactory   computeClientFactory
 
@@ -74,7 +78,7 @@ type Runnable interface {
 }
 
 // NewFrontend returns a new runnable frontend
-func NewFrontend(ctx context.Context, baseLog *logrus.Entry, _env env.Interface, db *database.Database, apis map[string]*api.Version, m metrics.Interface, cipher encryption.Cipher, kubeActionsFactory kubeActionsFactory, resourcesClientFactory resourcesClientFactory, computeClientFactory computeClientFactory) (Runnable, error) {
+func NewFrontend(ctx context.Context, baseLog *logrus.Entry, _env env.Interface, db *database.Database, apis map[string]*api.Version, m metrics.Interface, cipher encryption.Cipher, kubeActionsFactory kubeActionsFactory, resourcesClientFactory resourcesClientFactory, computeClientFactory computeClientFactory, etcdActionsFactory etcdActionsFactory) (Runnable, error) {
 	f := &frontend{
 		baseLog:                baseLog,
 		env:                    _env,
@@ -82,6 +86,7 @@ func NewFrontend(ctx context.Context, baseLog *logrus.Entry, _env env.Interface,
 		apis:                   apis,
 		m:                      m,
 		cipher:                 cipher,
+		etcdActionsFactory:     etcdActionsFactory,
 		kubeActionsFactory:     kubeActionsFactory,
 		resourcesClientFactory: resourcesClientFactory,
 		computeClientFactory:   computeClientFactory,
@@ -226,6 +231,13 @@ func (f *frontend) authenticatedRoutes(r *mux.Router) {
 		Subrouter()
 
 	s.Methods(http.MethodGet).HandlerFunc(f.getAdminOpenShiftClusters).Name("getAdminOpenShiftClusters")
+
+	// etcd
+	s = r.
+		Path("/admin/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}/etcd").
+		Subrouter()
+
+	s.Methods(http.MethodGet).HandlerFunc(f.getEtcdObjects).Name("getEtcdObjects")
 
 	// Operations
 	s = r.
