@@ -251,14 +251,6 @@
   version = "v1.15.7"
 
 [[projects]]
-  digest = "1:7b1e5a7db932006305b516f5b79f8dff3bf87582bee583a3a66effadfddc7aed"
-  name = "github.com/coreos/etcd"
-  packages = ["clientv3"]
-  pruneopts = "UT"
-  revision = "54ba9589114fc3fa5cc36c313550b3c0c0938c91"
-  version = "v3.4.9"
-
-[[projects]]
   digest = "1:05ffeeed3f0f05520de0679f6aa3219ffee69cfd6d9fb6c194879d4c818ad670"
   name = "github.com/coreos/go-semver"
   packages = ["semver"]
@@ -301,14 +293,6 @@
   pruneopts = "UT"
   revision = "76107251acd117c6d3e5b4dae2b47f82f944984b"
   version = "v0.26.0"
-
-[[projects]]
-  digest = "1:39ff4d4d6baca1ac63c6a03404b761d664be14a71bb5a4aca8fef643d0f66fef"
-  name = "github.com/coreos/pkg"
-  packages = ["capnslog"]
-  pruneopts = "UT"
-  revision = "97fdf19511ea361ae1c100dd393cc47f8dcfa1e1"
-  version = "v4"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -501,12 +485,10 @@
   version = "v0.19.6"
 
 [[projects]]
-  digest = "1:cb6758edd8bf662d8a8cc4d17d08b98c541b4c74fc87baa11d2f2b18ffb09da2"
+  digest = "1:582e25eccee928dc12416ea4c23b6dae8f3b5687730632aa1473ebebe80a2359"
   name = "github.com/gogo/protobuf"
   packages = [
-    "gogoproto",
     "proto",
-    "protoc-gen-gogo/descriptor",
     "sortkeys",
   ]
   pruneopts = "UT"
@@ -1312,33 +1294,6 @@
   revision = "d1553a71de50473073e188aa79cebf7f993f20fe"
 
 [[projects]]
-  digest = "1:6bddc90aac47d9f9e65c62af1bf3afb3c09d7bf7643874d9f3cab955b91627a2"
-  name = "go.etcd.io/etcd"
-  packages = [
-    "auth/authpb",
-    "clientv3/balancer",
-    "clientv3/balancer/connectivity",
-    "clientv3/balancer/picker",
-    "clientv3/balancer/resolver/endpoint",
-    "clientv3/credentials",
-    "etcdserver/api/v3rpc/rpctypes",
-    "etcdserver/etcdserverpb",
-    "mvcc/mvccpb",
-    "pkg/logutil",
-    "pkg/systemd",
-    "pkg/types",
-    "raft",
-    "raft/confchange",
-    "raft/quorum",
-    "raft/raftpb",
-    "raft/tracker",
-    "version",
-  ]
-  pruneopts = "UT"
-  revision = "54ba9589114fc3fa5cc36c313550b3c0c0938c91"
-  version = "v3.4.9"
-
-[[projects]]
   digest = "1:7b6ca9454e8d16e34b251f181a4ae430a25805acca64ea46b0448583b44fcfe6"
   name = "go.opencensus.io"
   packages = [
@@ -1362,37 +1317,6 @@
   pruneopts = "UT"
   revision = "aad2c527c5defcf89b5afab7f37274304195a6b2"
   version = "v0.22.2"
-
-[[projects]]
-  digest = "1:19525e48b45af69339bd7c2812137dbd1e650a78fc09c7c75482e307d51aa28d"
-  name = "go.uber.org/atomic"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "845920076a298bdb984fb0f1b86052e4ca0a281c"
-  version = "v1.6.0"
-
-[[projects]]
-  digest = "1:a23ddd39502ba94e2a72815a946d0edec801defcf0a0c0530d04acee1f455128"
-  name = "go.uber.org/multierr"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "b587143a48b62b01d337824eab43700af6ffe222"
-  version = "v1.5.0"
-
-[[projects]]
-  digest = "1:8e22fc6a99b3054c643f020c29a8e5c7809e75292b4960b26b60f717a201b6dc"
-  name = "go.uber.org/zap"
-  packages = [
-    ".",
-    "buffer",
-    "internal/bufferpool",
-    "internal/color",
-    "internal/exit",
-    "zapcore",
-  ]
-  pruneopts = "UT"
-  revision = "feeb9a050b31b40eec6f2470e7599eeeadfe5bdd"
-  version = "v1.15.0"
 
 [[projects]]
   branch = "master"
@@ -1606,7 +1530,7 @@
   revision = "32f20d992d240fbca6ef7dec6c05d1f024314e02"
 
 [[projects]]
-  digest = "1:7bc116a2ccc363ff2d7df0d4fc3211254366dc4792d14685b0b4980becbed2f5"
+  digest = "1:3fe55026bb11519b45c0fc9d848fd779028b868dc62f5563c518cf850c7421d5"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -1641,8 +1565,6 @@
     "naming",
     "peer",
     "resolver",
-    "resolver/dns",
-    "resolver/passthrough",
     "serviceconfig",
     "stats",
     "status",
@@ -2038,9 +1960,7 @@
     "github.com/containers/image/pkg/blobinfocache/memory",
     "github.com/containers/image/signature",
     "github.com/containers/image/types",
-    "github.com/coreos/etcd/clientv3",
     "github.com/coreos/go-systemd/journal",
-    "github.com/davecgh/go-spew/spew",
     "github.com/dgrijalva/jwt-go",
     "github.com/ghodss/yaml",
     "github.com/go-bindata/go-bindata/go-bindata",

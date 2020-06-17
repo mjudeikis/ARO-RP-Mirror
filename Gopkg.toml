@@ -105,7 +105,3 @@ required = [
   [[prune.project]]
     name = "github.com/openshift/installer"
     unused-packages = false
-
-[[constraint]]
-  name = "github.com/coreos/etcd"
-  version = "3.4.9"
