@@ -1,7 +1,7 @@
 parameters:
   purgeTTL: ''
   purgeCreatedTag: ''
-  subscriptionCredentials: ''
+  subscriptionCredentialsJSON: ''
   subscriptionId: ''
   workingDirectory: ''
   dryRun: ''
@@ -11,7 +11,7 @@ steps:
 - script: |
     set -e
 
-    echo ${{ parameters.subscriptionCredentials }} | base64 -d -w 0 > spn.json
+    base64 -d >spn.json <<<${{ parameters.subscriptionCredentialsJSON }}
     export AZURE_CLIENT_ID=$(cat spn.json | jq -r '.clientId')
     export AZURE_CLIENT_SECRET=$(cat spn.json | jq -r '.clientSecret')
     export AZURE_TENANT_ID=$(cat spn.json | jq -r '.tenantId')

@@ -25,7 +25,7 @@ jobs:
   - template: ./templates/template-clean-subscription.yml
     parameters:
       dryRun: ${{ parameters.dryRun }}
-      subscriptionCredentials: $(aro-v4-e2e-devops-spn)
+      subscriptionCredentialsJSON: $(aro-v4-e2e-devops-spn)
       subscriptionId: ${{ variables.subscriptionId }}
       workingDirectory: ${{ variables.modulePath }}
 
