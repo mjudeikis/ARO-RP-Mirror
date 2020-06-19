@@ -2,7 +2,6 @@ trigger: none
 pr: none
 
 parameters:
-- name: purgeTTL
 - name: subscriptionId
 - name: subscriptionCredentials
 - name: dryRun
