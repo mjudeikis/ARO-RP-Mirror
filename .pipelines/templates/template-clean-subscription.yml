@@ -20,7 +20,7 @@ parameters:
   default: ''
 - name: dryRun
   type: boolean
-  default: false
+  default: true
 - name: resourceGroupDeletePrefixes
   type: string
   default: v4-e2e-rg-,aro-v4-e2e-rg-
@@ -28,12 +28,12 @@ parameters:
 steps:
 - script: |
     set -e
-    env
-    echo $SUBSCRIPTIONCREDENTIALS | base64 -d -w 0 > spn.json
+
+    echo ${{ parameters.subscriptionCredentials }} | base64 -d -w 0 > spn.json
     export AZURE_CLIENT_ID=$(cat spn.json | jq -r '.clientId')
     export AZURE_CLIENT_SECRET=$(cat spn.json | jq -r '.clientSecret')
     export AZURE_TENANT_ID=$(cat spn.json | jq -r '.tenantId')
-    export AZURE_SUBSCRIPTION_ID=$(parameters.subscriptionId)
+    export AZURE_SUBSCRIPTION_ID=${{ parameters.subscriptionId }}
 
     export AZURE_PURGE_TTL="${{ parameters.purgeTTL }}""
     export AZURE_PURGE_CREATED_TAG="${{ parameters.purgeCreatedTag }}"
