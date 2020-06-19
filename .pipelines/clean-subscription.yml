@@ -25,10 +25,7 @@ jobs:
   - template: ./templates/template-clean-subscription.yml
     parameters:
       dryRun: ${{ parameters.dryRun }}
-      subscriptionCredentials: ${{ variables.subscriptionCredentials }}
+      subscriptionCredentials: $(rhdev-purge)
       subscriptionId: ${{ variables.subscriptionId }}
-      purgeTTL: ${{ variables.purgeTTL }}
-      purgeCreatedTag:  ${{ variables.purgeCreatedTag }}
-      resourceGroupDeletePrefixes: ${{ variables.resourceGroupDeletePrefixes }}
       workingDirectory: ${{ variables.modulePath }}
 
