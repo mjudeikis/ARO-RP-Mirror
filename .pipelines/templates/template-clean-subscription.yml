@@ -28,6 +28,7 @@ parameters:
 steps:
 - script: |
     set -e
+    env
     echo $SUBSCRIPTIONCREDENTIALS | base64 -d -w 0 > spn.json
     export AZURE_CLIENT_ID=$(cat spn.json | jq -r '.clientId')
     export AZURE_CLIENT_SECRET=$(cat spn.json | jq -r '.clientSecret')
