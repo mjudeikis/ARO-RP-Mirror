@@ -6,6 +6,7 @@ parameters:
 - name: purgeCreatedTag
   displayName: Name of the tag used in subscription marking created at
   type: string
+  default: "createdAt"
 - name: subscriptionCredentials
   displayName: Subscription properties required to login
   type: string
