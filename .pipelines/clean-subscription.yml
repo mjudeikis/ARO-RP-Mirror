@@ -4,9 +4,7 @@ pr: none
 parameters:
 - name: purgeTTL
 - name: subscriptionId
-- name: purgeCreatedTag
 - name: subscriptionCredentials
-- name: resourceGroupDeletePrefixes
 - name: dryRun
   type: boolean
   default: true
