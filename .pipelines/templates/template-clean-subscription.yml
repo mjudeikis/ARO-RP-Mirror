@@ -1,26 +1,11 @@
 parameters:
-- name: purgeTTL
-  displayName: Timeout before resources are force cleaned.
-  type: string
-  default: 6h
-- name: purgeCreatedTag
-  displayName: Name of the tag used in subscription marking created at
-  type: string
-  default: "createdAt"
-- subscriptionCredentials: ''
-- name: subscriptionId
-  displayName: SubscriptionId to clean
-  type: string
-  default: ''
-- name: workingDirectory
-  type: string
-  default: ''
-- name: dryRun
-  type: boolean
-  default: true
-- name: resourceGroupDeletePrefixes
-  type: string
-  default: v4-e2e-rg-,aro-v4-e2e-rg-
+  purgeTTL: ''
+  purgeCreatedTag: ''
+  subscriptionCredentials: ''
+  subscriptionId: ''
+  workingDirectory: ''
+  dryRun: ''
+  resourceGroupDeletePrefixes: ''
 
 steps:
 - script: |
