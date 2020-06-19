@@ -15,7 +15,7 @@ variables:
 - template: vars.yml
 
 jobs:
-- job: Clean subscription
+- job: Clean_subscription
   pool:
     vmImage: ubuntu-latest
 
