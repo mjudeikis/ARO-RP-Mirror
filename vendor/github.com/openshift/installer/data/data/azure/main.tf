@@ -48,8 +48,8 @@ module "bootstrap" {
 module "vnet" {
   source              = "./vnet"
   resource_group_name = azurerm_resource_group.main.name
-  vnet_v4_cidrs       = var.azure_machine_v4_cidrs
-  vnet_v6_cidrs       = var.azure_machine_v6_cidrs
+  vnet_v4_cidrs       = var.machine_v4_cidrs
+  vnet_v6_cidrs       = var.machine_v6_cidrs
   cluster_id          = var.cluster_id
   region              = var.azure_region
   dns_label           = var.cluster_id
@@ -105,9 +105,6 @@ module "dns" {
   internal_lb_ipaddress_v6        = module.vnet.internal_lb_ip_v6_address
   resource_group_name             = azurerm_resource_group.main.name
   base_domain_resource_group_name = var.azure_base_domain_resource_group_name
-  etcd_count                      = var.master_count
-  etcd_ip_v4_addresses            = module.master.ip_v4_addresses
-  etcd_ip_v6_addresses            = module.master.ip_v6_addresses
   private                         = module.vnet.private
 
   use_ipv4                  = var.use_ipv4 || var.azure_emulate_single_stack_ipv6

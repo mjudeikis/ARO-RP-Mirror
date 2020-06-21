@@ -252,7 +252,7 @@ func waitForBootstrapComplete(ctx context.Context, config *rest.Config, director
 
 	discovery := client.Discovery()
 
-	apiTimeout := 30 * time.Minute
+	apiTimeout := 20 * time.Minute
 	logrus.Infof("Waiting up to %v for the Kubernetes API at %s...", apiTimeout, config.Host)
 	apiContext, cancel := context.WithTimeout(ctx, apiTimeout)
 	defer cancel()
@@ -262,12 +262,14 @@ func waitForBootstrapComplete(ctx context.Context, config *rest.Config, director
 	logDownsample := 15
 	silenceRemaining := logDownsample
 	previousErrorSuffix := ""
+	var lastErr error
 	wait.Until(func() {
 		version, err := discovery.ServerVersion()
 		if err == nil {
 			logrus.Infof("API %s up", version)
 			cancel()
 		} else {
+			lastErr = err
 			silenceRemaining--
 			chunks := strings.Split(err.Error(), ":")
 			errorSuffix := chunks[len(chunks)-1]
@@ -283,6 +285,9 @@ func waitForBootstrapComplete(ctx context.Context, config *rest.Config, director
 	}, 2*time.Second, apiContext.Done())
 	err = apiContext.Err()
 	if err != nil && err != context.Canceled {
+		if lastErr != nil {
+			return errors.Wrap(lastErr, "failed waiting for Kubernetes API")
+		}
 		return errors.Wrap(err, "waiting for Kubernetes API")
 	}
 
@@ -293,7 +298,7 @@ func waitForBootstrapComplete(ctx context.Context, config *rest.Config, director
 // and waits for the bootstrap configmap to report that bootstrapping has
 // completed.
 func waitForBootstrapConfigMap(ctx context.Context, client *kubernetes.Clientset) error {
-	timeout := 30 * time.Minute
+	timeout := 40 * time.Minute
 	logrus.Infof("Waiting up to %v for bootstrapping to complete...", timeout)
 
 	waitCtx, cancel := context.WithTimeout(ctx, timeout)

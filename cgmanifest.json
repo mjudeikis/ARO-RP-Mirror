@@ -175,7 +175,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "76107251acd117c6d3e5b4dae2b47f82f944984b",
+                    "commitHash": "7afbeba044a8bf5762609fbb5f352291eeb7ad9a",
                     "repositoryUrl": "https://github.com/coreos/ignition/"
                 }
             }
@@ -553,15 +553,6 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "79c2a76c473a20cdc4ce59cae4b72529b5d9d16b",
-                    "repositoryUrl": "https://github.com/kubernetes/apimachinery/"
-                }
-            }
-        },
-        {
-            "component": {
-                "type": "git",
-                "git": {
                     "commitHash": "fcf300cf5543bbd7fb57e08b38ad519c910b59c4",
                     "repositoryUrl": "https://github.com/libvirt/libvirt-go/"
                 }
@@ -778,6 +769,15 @@
             "component": {
                 "type": "git",
                 "git": {
+                    "commitHash": "281b4db96607c474f73161c49aab80528f517c26",
+                    "repositoryUrl": "https://github.com/openshift/cluster-api-provider-ovirt/"
+                }
+            }
+        },
+        {
+            "component": {
+                "type": "git",
+                "git": {
                     "commitHash": "bfda4d3462fd7305573adb103137723d2bd4975c",
                     "repositoryUrl": "https://github.com/openshift/cluster-samples-operator/"
                 }
@@ -796,7 +796,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "f90508187f1541ca43fca89843f5f26a8ccf34a0",
+                    "commitHash": "7470d54995508eb2ab1ce7a8f6947716675826a8",
                     "repositoryUrl": "https://github.com/openshift/installer/"
                 }
             }
@@ -805,7 +805,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "commitHash": "a3345f5a437a8ca82be683c7c38fe49de64c2b5f",
+                    "commitHash": "b1554c0714123dec050dd0df07b9a2064f088a87",
                     "repositoryUrl": "https://github.com/openshift/machine-api-operator/"
                 }
             }
@@ -816,6 +816,15 @@
                 "git": {
                     "commitHash": "25bb6aeb58135c38a667e849edf5244871be4992",
                     "repositoryUrl": "https://github.com/openshift/machine-config-operator/"
+                }
+            }
+        },
+        {
+            "component": {
+                "type": "git",
+                "git": {
+                    "commitHash": "9bcc4fd4e6c0921d07d328036c73abbea369e023",
+                    "repositoryUrl": "https://github.com/ovirt/go-ovirt/"
                 }
             }
         },
@@ -960,6 +969,15 @@
                 "git": {
                     "commitHash": "d1553a71de50473073e188aa79cebf7f993f20fe",
                     "repositoryUrl": "https://github.com/vincent-petithory/dataurl/"
+                }
+            }
+        },
+        {
+            "component": {
+                "type": "git",
+                "git": {
+                    "commitHash": "7650349cbb310500918819d5e29708ef17fca8ee",
+                    "repositoryUrl": "https://github.com/vmware/govmomi/"
                 }
             }
         },

@@ -26,7 +26,7 @@ module "bootstrap" {
   target_group_arns        = module.vpc.aws_lb_target_group_arns
   target_group_arns_length = module.vpc.aws_lb_target_group_arns_length
   vpc_id                   = module.vpc.vpc_id
-  vpc_cidrs                = module.vpc.vpc_cidrs
+  vpc_cidrs                = var.machine_v4_cidrs
   vpc_security_group_ids   = [module.vpc.master_sg_id]
   publish_strategy         = var.aws_publish_strategy
 
@@ -73,8 +73,6 @@ module "dns" {
   base_domain              = var.base_domain
   cluster_domain           = var.cluster_domain
   cluster_id               = var.cluster_id
-  etcd_count               = var.master_count
-  etcd_ip_addresses        = flatten(module.masters.ip_addresses)
   tags                     = local.tags
   vpc_id                   = module.vpc.vpc_id
   publish_strategy         = var.aws_publish_strategy
@@ -83,7 +81,7 @@ module "dns" {
 module "vpc" {
   source = "./vpc"
 
-  cidr_block       = var.machine_cidr
+  cidr_blocks      = var.machine_v4_cidrs
   cluster_id       = var.cluster_id
   region           = var.aws_region
   vpc              = var.aws_vpc

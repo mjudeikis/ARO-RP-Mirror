@@ -13,10 +13,11 @@ import (
 	"github.com/openshift/installer/pkg/asset/installconfig/aws"
 	icazure "github.com/openshift/installer/pkg/asset/installconfig/azure"
 	icgcp "github.com/openshift/installer/pkg/asset/installconfig/gcp"
+	icopenstack "github.com/openshift/installer/pkg/asset/installconfig/openstack"
+	icovirt "github.com/openshift/installer/pkg/asset/installconfig/ovirt"
 	"github.com/openshift/installer/pkg/types"
 	"github.com/openshift/installer/pkg/types/conversion"
 	"github.com/openshift/installer/pkg/types/defaults"
-	openstackvalidation "github.com/openshift/installer/pkg/types/openstack/validation"
 	"github.com/openshift/installer/pkg/types/validation"
 )
 
@@ -83,6 +84,7 @@ func (a *InstallConfig) Generate(parents asset.Parents) error {
 	a.Config.Azure = platform.Azure
 	a.Config.GCP = platform.GCP
 	a.Config.BareMetal = platform.BareMetal
+	a.Config.Ovirt = platform.Ovirt
 
 	return a.finish("", platformCreds)
 }
@@ -135,7 +137,7 @@ func (a *InstallConfig) finish(filename string, platformCreds *PlatformCreds) er
 		a.AWS = aws.NewMetadata(a.Config.Platform.AWS.Region, a.Config.Platform.AWS.Subnets)
 	}
 
-	if err := validation.ValidateInstallConfig(a.Config, openstackvalidation.NewValidValuesFetcher()).ToAggregate(); err != nil {
+	if err := validation.ValidateInstallConfig(a.Config, icopenstack.NewValidValuesFetcher()).ToAggregate(); err != nil {
 		if filename == "" {
 			return errors.Wrap(err, "invalid install config")
 		}
@@ -178,6 +180,9 @@ func (a *InstallConfig) platformValidation(platformCreds *PlatformCreds) error {
 	}
 	if a.Config.Platform.AWS != nil {
 		return aws.Validate(context.TODO(), a.AWS, a.Config)
+	}
+	if a.Config.Platform.Ovirt != nil {
+		return icovirt.Validate(a.Config)
 	}
 	return field.ErrorList{}.ToAggregate()
 }

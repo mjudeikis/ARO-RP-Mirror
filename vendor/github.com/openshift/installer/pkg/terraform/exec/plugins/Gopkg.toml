@@ -68,8 +68,8 @@ ignored = [
   version = "1.2.1"
 
 [[override]]
-  name = "github.com/Azure/azure-sdk-for-go"
-  version = "26.7.0"
+  name = "github.com/oVirt/terraform-provider-master"
+  branch = "master"
 
 [[override]]
   name = "github.com/hashicorp/go-azure-helpers"
@@ -78,6 +78,23 @@ ignored = [
 [[constraint]]
   name = "github.com/openshift-metal3/terraform-provider-ironic"
   version = "v0.1.8"
+
+[[constraint]]
+  name = "github.com/ovirt/terraform-provider-ovirt"
+  revision = "f290f06b7bdf4ae2e25f70c99dd14f55975d2c73"
+
+[[override]]
+  name = "github.com/ovirt/go-ovirt"
+  revision = "9bcc4fd4e6c0921d07d328036c73abbea369e023"
+
+
+[[constraint]]
+  name = "github.com/terraform-providers/terraform-provider-vsphere"
+  version = "1.14.0"
+
+[[override]]
+  name = "github.com/vmware/govmomi"
+  revision = "68980704b1ae7161556b72f69d5cb8358dcbc9ae"
 
 [[override]]
   name = "github.com/apparentlymart/go-cidr"
