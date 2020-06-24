@@ -127,6 +127,7 @@ run_e2e() {
     echo "########## Run E2E ##########"
     go run ./hack/kubeadminkubeconfig "/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/$ARO_RESOURCEGROUP/providers/Microsoft.RedHatOpenShift/openShiftClusters/$CLUSTER" >$KUBECONFIG
     oc get nodes
+    echo $KUBECONFIG
     RESOURCEGROUP=$ARO_RESOURCEGROUP make e2e
 }
 
