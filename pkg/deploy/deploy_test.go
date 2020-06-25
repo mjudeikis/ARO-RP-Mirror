@@ -11,6 +11,9 @@ import (
 )
 
 func TestGetParameters(t *testing.T) {
+	databaseAccountName := "databaseAccountName"
+	adminApiCaBundle := "adminApiCaBundle"
+	extraClusterKeyVaultAccessPolicies := []interface{}{"a", "b", 1}
 	for _, tt := range []struct {
 		name   string
 		ps     map[string]interface{}
@@ -28,26 +31,48 @@ func TestGetParameters(t *testing.T) {
 			},
 		},
 		{
-			name: "valid",
+			name: "all parameters present",
 			ps: map[string]interface{}{
 				"adminApiCaBundle":                   nil,
 				"databaseAccountName":                nil,
 				"extraClusterKeyvaultAccessPolicies": nil,
 			},
 			config: Configuration{
-				DatabaseAccountName:                "databaseAccountName",
-				ExtraClusterKeyvaultAccessPolicies: []interface{}{"a", 1},
+				DatabaseAccountName:                &databaseAccountName,
+				AdminAPICABundle:                   &adminApiCaBundle,
+				ExtraClusterKeyvaultAccessPolicies: extraClusterKeyVaultAccessPolicies,
 			},
 			want: arm.Parameters{
 				Parameters: map[string]*arm.ParametersParameter{
-					"adminApiCaBundle": {
-						Value: "",
-					},
 					"databaseAccountName": {
-						Value: "databaseAccountName",
+						Value: databaseAccountName,
 					},
 					"extraClusterKeyvaultAccessPolicies": {
-						Value: []interface{}{"a", 1},
+						Value: extraClusterKeyVaultAccessPolicies,
+					},
+					"adminApiCaBundle": {
+						Value: adminApiCaBundle,
+					},
+					"fullDeploy": {
+						Value: false,
+					},
+				},
+			},
+		},
+		{
+			name: "skip nil values",
+			ps: map[string]interface{}{
+				"adminApiCaBundle":                   nil,
+				"databaseAccountName":                nil,
+				"extraClusterKeyvaultAccessPolicies": nil,
+			},
+			config: Configuration{
+				DatabaseAccountName: &databaseAccountName,
+			},
+			want: arm.Parameters{
+				Parameters: map[string]*arm.ParametersParameter{
+					"databaseAccountName": {
+						Value: databaseAccountName,
 					},
 					"fullDeploy": {
 						Value: false,
@@ -63,9 +88,6 @@ func TestGetParameters(t *testing.T) {
 			config: Configuration{},
 			want: arm.Parameters{
 				Parameters: map[string]*arm.ParametersParameter{
-					"extraClusterKeyvaultAccessPolicies": {
-						Value: []interface{}(nil),
-					},
 					"fullDeploy": {
 						Value: false,
 					},
@@ -79,9 +101,11 @@ func TestGetParameters(t *testing.T) {
 			}
 
 			got := d.getParameters(tt.ps)
+
 			if !reflect.DeepEqual(got, &tt.want) {
 				t.Errorf("%#v", got)
 			}
+
 		})
 	}
 }

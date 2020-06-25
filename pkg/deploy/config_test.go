@@ -51,6 +51,11 @@ func TestConfigurationFieldParity(t *testing.T) {
 }
 
 func TestMergeConfig(t *testing.T) {
+	databaseAccountName := "databaseAccountName"
+	fpServerCertCommonName := "fpServerCertCommonName"
+	fpServerSecondaryCommonName := "fpServerSecondaryCommonName"
+	kvPrefix := "keyvaultPrefix"
+
 	for _, tt := range []struct {
 		name      string
 		primary   Configuration
@@ -63,17 +68,17 @@ func TestMergeConfig(t *testing.T) {
 		{
 			name: "overrides",
 			primary: Configuration{
-				DatabaseAccountName:    "primary accountname",
-				FPServerCertCommonName: "primary fpcert",
+				DatabaseAccountName:    &databaseAccountName,
+				FPServerCertCommonName: &fpServerCertCommonName,
 			},
 			secondary: Configuration{
-				FPServerCertCommonName: "secondary fpcert",
-				KeyvaultPrefix:         "secondary kv",
+				FPServerCertCommonName: &fpServerSecondaryCommonName,
+				KeyvaultPrefix:         &kvPrefix,
 			},
 			want: Configuration{
-				DatabaseAccountName:    "primary accountname",
-				FPServerCertCommonName: "primary fpcert",
-				KeyvaultPrefix:         "secondary kv",
+				DatabaseAccountName:    &databaseAccountName,
+				FPServerCertCommonName: &fpServerCertCommonName,
+				KeyvaultPrefix:         &kvPrefix,
 			},
 		},
 	} {

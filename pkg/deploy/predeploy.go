@@ -29,7 +29,7 @@ func (d *deployer) PreDeploy(ctx context.Context) error {
 	}
 
 	if d.fullDeploy {
-		_, err = d.groups.CreateOrUpdate(ctx, d.config.Configuration.SubscriptionResourceGroupName, mgmtfeatures.ResourceGroup{
+		_, err = d.groups.CreateOrUpdate(ctx, to.String(d.config.Configuration.SubscriptionResourceGroupName), mgmtfeatures.ResourceGroup{
 			Location: to.StringPtr("centralus"),
 		})
 		if err != nil {
@@ -103,7 +103,7 @@ func (d *deployer) deployGlobal(ctx context.Context, rpServicePrincipalID string
 	}
 
 	d.log.Infof("deploying %s", deploymentName)
-	return d.globaldeployments.CreateOrUpdateAndWait(ctx, d.config.Configuration.GlobalResourceGroupName, deploymentName, mgmtfeatures.Deployment{
+	return d.globaldeployments.CreateOrUpdateAndWait(ctx, to.String(d.config.Configuration.GlobalResourceGroupName), deploymentName, mgmtfeatures.Deployment{
 		Properties: &mgmtfeatures.DeploymentProperties{
 			Template:   template,
 			Mode:       mgmtfeatures.Incremental,
@@ -156,7 +156,7 @@ func (d *deployer) deploySubscription(ctx context.Context) error {
 	parameters := d.getParameters(template["parameters"].(map[string]interface{}))
 
 	d.log.Infof("deploying %s", deploymentName)
-	return d.deployments.CreateOrUpdateAndWait(ctx, d.config.Configuration.SubscriptionResourceGroupName, deploymentName, mgmtfeatures.Deployment{
+	return d.deployments.CreateOrUpdateAndWait(ctx, to.String(d.config.Configuration.SubscriptionResourceGroupName), deploymentName, mgmtfeatures.Deployment{
 		Properties: &mgmtfeatures.DeploymentProperties{
 			Template:   template,
 			Mode:       mgmtfeatures.Incremental,
@@ -234,7 +234,7 @@ func (d *deployer) deployPreDeploy(ctx context.Context, rpServicePrincipalID str
 }
 
 func (d *deployer) configureServiceSecrets(ctx context.Context) error {
-	serviceKeyVaultURI := "https://" + d.config.Configuration.KeyvaultPrefix + "-svc.vault.azure.net/"
+	serviceKeyVaultURI := "https://" + to.String(d.config.Configuration.KeyvaultPrefix) + "-svc.vault.azure.net/"
 	secrets, err := d.keyvault.GetSecrets(ctx, serviceKeyVaultURI, nil)
 	if err != nil {
 		return err
