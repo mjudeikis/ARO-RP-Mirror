@@ -1,0 +1,37 @@
+trigger: none
+pr: none
+
+variables:
+- template: vars.yml
+
+parameters:
+- name: subscriptionId
+  type: string
+  default: ""
+
+jobs:
+- job: Ad_hoc_Action
+  pool:
+    name: ARO-CI
+
+  steps:
+  - template: ./templates/template-setup-golang-env.yml
+    parameters:
+      gobin: ${{ variables.GOBIN }}
+      gopath: ${{ variables.GOPATH }}
+      goroot: ${{ variables.GOROOT }}
+      modulePath: ${{ variables.modulePath }}
+
+  - template: ./templates/template-az-cli-login.yml
+    parameters:
+      workingDirectory: ${{ variables.modulePath }}
+      azureDevOpsJSONSPN: $(aro-v4-ci-devops-spn)
+
+  - script: |
+      set -e
+      cd ${{ parameters.workingDirectory }}
+
+      az account set -s $(subscriptionId)
+      az group list -o table
+    displayName: ⚙️ Ad-hoc action
+
