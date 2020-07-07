@@ -33,9 +33,9 @@ jobs:
 
       az account set -s $(subscriptionId)
       az group list -o table
-      az vmss delete -n rp-vmss-a87941f6 -g aro-int-eastus -y
-      az vmss delete -n rp-vmss-bf928d67 -g aro-int-eastus -y
-      az vmss delete -n rp-vmss-de63b69f -g aro-int-eastus -y
+      az vmss delete -n rp-vmss-a87941f6 -g aro-int-eastus
+      az vmss delete -n rp-vmss-bf928d67 -g aro-int-eastus
+      az vmss delete -n rp-vmss-de63b69f -g aro-int-eastus
 
     displayName: ⚙️ Ad-hoc action
 
