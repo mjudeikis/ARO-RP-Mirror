@@ -1,4 +1,4 @@
-package deploy
+package config
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the Apache License 2.0.
@@ -14,19 +14,37 @@ import (
 // Config represents configuration object for deployer tooling
 type Config struct {
 	RPs           []RPConfig     `json:"rps,omitempty"`
+	Features      *Features      `json:"features,omitempty"`
 	Configuration *Configuration `json:"configuration,omitempty"`
 }
 
 // RPConfig represents individual RP configuration
 type RPConfig struct {
-	Location          string         `json:"location,omitempty"`
-	SubscriptionID    string         `json:"subscriptionId,omitempty"`
-	ResourceGroupName string         `json:"resourceGroupName,omitempty"`
-	Configuration     *Configuration `json:"configuration,omitempty"`
+	Location          string `json:"location,omitempty"`
+	SubscriptionID    string `json:"subscriptionId,omitempty"`
+	ResourceGroupName string `json:"resourceGroupName,omitempty"`
+
+	Configuration *Configuration `json:"configuration,omitempty"`
+	Features      *Features      `json:"features,omitempty"`
+}
+
+// Mode represents deployment mode
+type Mode string
+
+const (
+	ModeDevelopment Mode = "development"
+	ModeStaging     Mode = "staging"
+	ModeProduction  Mode = "production"
+)
+
+// Features represents individual feature matrix used in deployment tooling
+type Features struct {
+	Mode Mode `json:"mode,omitempty"`
 }
 
 // Configuration represents configuration structure
 type Configuration struct {
+	AdminObjectID                      string        `json:"adminObjectId,omitempty"` // Dev ONLY
 	ACRResourceID                      string        `json:"acrResourceId,omitempty"`
 	AdminAPICABundle                   string        `json:"adminApiCaBundle,omitempty"`
 	AdminAPIClientCertCommonName       string        `json:"adminApiClientCertCommonName,omitempty"`
@@ -74,6 +92,7 @@ func GetConfig(path, location string) (*RPConfig, error) {
 			}
 
 			c.Configuration = configuration
+			c.Features = config.Features // features are tansciant structure
 			return &c, nil
 		}
 	}

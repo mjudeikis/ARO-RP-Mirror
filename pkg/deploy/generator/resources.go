@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Azure/ARO-RP/pkg/deploy/config"
+
 	mgmtcompute "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-03-01/compute"
 	mgmtcontainerregistry "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-06-01-preview/containerregistry"
 	mgmtdocumentdb "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2019-08-01/documentdb"
@@ -69,7 +71,7 @@ func (g *generator) securityGroupRP() *arm.Resource {
 		Location: to.StringPtr("[resourceGroup().location]"),
 	}
 
-	if !g.production {
+	if g.mode == config.ModeDevelopment { // SSH is only allowed in development
 		// override production ARM flag for more open configuration in development
 		(*nsg.SecurityRules)[0].SecurityRulePropertiesFormat.SourceAddressPrefix = to.StringPtr("*")
 
@@ -417,6 +419,7 @@ func (g *generator) halfPeering(vnetA string, vnetB string) *arm.Resource {
 	}
 }
 
+// TODO(mj): This will have to change a lot in configuration
 func (g *generator) rpvnet() *arm.Resource {
 	subnet := mgmtnetwork.Subnet{
 		SubnetPropertiesFormat: &mgmtnetwork.SubnetPropertiesFormat{
@@ -428,7 +431,7 @@ func (g *generator) rpvnet() *arm.Resource {
 		Name: to.StringPtr("rp-subnet"),
 	}
 
-	if g.production {
+	if g.mode == config.ModeProduction {
 		subnet.ServiceEndpoints = &[]mgmtnetwork.ServiceEndpointPropertiesFormat{
 			{
 				Service:   to.StringPtr("Microsoft.KeyVault"),
@@ -1125,7 +1128,7 @@ func (g *generator) clustersKeyvault() *arm.Resource {
 		},
 	}
 
-	if !g.production {
+	if g.mode != config.ModeProduction {
 		*vault.Properties.AccessPolicies = append(g.clusterKeyvaultAccessPolicies(),
 			mgmtkeyvault.AccessPolicyEntry{
 				TenantID: &tenantUUIDHack,
@@ -1166,7 +1169,7 @@ func (g *generator) serviceKeyvault() *arm.Resource {
 		},
 	}
 
-	if !g.production {
+	if g.mode != config.ModeProduction {
 		*vault.Properties.AccessPolicies = append(g.serviceKeyvaultAccessPolicies(),
 			mgmtkeyvault.AccessPolicyEntry{
 				TenantID: &tenantUUIDHack,
@@ -1222,7 +1225,7 @@ func (g *generator) cosmosdb() []*arm.Resource {
 		APIVersion: azureclient.APIVersions["Microsoft.DocumentDB"],
 	}
 
-	if g.production {
+	if g.mode == config.ModeProduction {
 		cosmosdb.IPRangeFilter = to.StringPtr("[concat('104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26', if(equals(parameters('extraCosmosDBIPs'), ''), '', ','), parameters('extraCosmosDBIPs'))]")
 		cosmosdb.IsVirtualNetworkFilterEnabled = to.BoolPtr(true)
 		cosmosdb.VirtualNetworkRules = &[]mgmtdocumentdb.VirtualNetworkRule{
@@ -1239,7 +1242,7 @@ func (g *generator) cosmosdb() []*arm.Resource {
 		r,
 	}
 
-	if g.production {
+	if g.mode == config.ModeProduction {
 		rs = append(rs, g.database("'ARO'", true)...)
 	}
 

@@ -16,6 +16,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/sirupsen/logrus"
 
+	"github.com/Azure/ARO-RP/pkg/deploy/config"
 	"github.com/Azure/ARO-RP/pkg/deploy/generator"
 	"github.com/Azure/ARO-RP/pkg/util/arm"
 	"github.com/Azure/ARO-RP/pkg/util/azureclient/mgmt/compute"
@@ -52,12 +53,12 @@ type deployer struct {
 
 	generator  generator.Generator
 	fullDeploy bool
-	config     *RPConfig
+	config     *config.RPConfig
 	version    string
 }
 
 // New initiates new deploy utility object
-func New(ctx context.Context, log *logrus.Entry, config *RPConfig, version string, fullDeploy bool) (Deployer, error) {
+func New(ctx context.Context, log *logrus.Entry, config *config.RPConfig, version string, fullDeploy bool) (Deployer, error) {
 	authorizer, err := auth.NewAuthorizerFromEnvironment()
 	if err != nil {
 		return nil, err
@@ -83,7 +84,7 @@ func New(ctx context.Context, log *logrus.Entry, config *RPConfig, version strin
 		zones:                  dns.NewZonesClient(config.SubscriptionID, authorizer),
 		keyvault:               keyvault.NewManager(kvAuthorizer),
 
-		generator:  generator.New(true),
+		generator:  generator.New(config.Features.Mode),
 		fullDeploy: fullDeploy,
 		config:     config,
 		version:    version,

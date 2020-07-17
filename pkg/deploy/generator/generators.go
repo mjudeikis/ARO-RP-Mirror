@@ -1,5 +1,7 @@
 package generator
 
+import "github.com/Azure/ARO-RP/pkg/deploy/config"
+
 // Copyright (c) Microsoft Corporation.
 // Licensed under the Apache License 2.0.
 
@@ -14,11 +16,13 @@ type Generator interface {
 }
 
 type generator struct {
-	production bool
+	mode config.Mode
 }
 
-func New(production bool) Generator {
+// New return new instance of generators. Generators returns different
+// resource configuration, depending on the Mode of the execution.
+func New(mode config.Mode) Generator {
 	return &generator{
-		production: production,
+		mode: mode,
 	}
 }

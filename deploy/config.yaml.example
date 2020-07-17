@@ -5,7 +5,10 @@ rps:
   configuration:
     databaseAccountName: ''
     keyvaultPrefix: ''
+features:
+  mode: development
 configuration:
+  adminObjectId: ''
   acrResourceId: ''
   adminApiCaBundle: ''
   adminApiClientCertCommonName: ''

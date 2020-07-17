@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	deployer "github.com/Azure/ARO-RP/pkg/deploy"
+	deployerconfig "github.com/Azure/ARO-RP/pkg/deploy/config"
 	"github.com/Azure/ARO-RP/pkg/util/version"
 )
 
@@ -33,7 +34,7 @@ func deploy(ctx context.Context, log *logrus.Entry) error {
 		return fmt.Errorf("location %s must be lower case", location)
 	}
 
-	config, err := deployer.GetConfig(flag.Arg(1), location)
+	config, err := deployerconfig.GetConfig(flag.Arg(1), location)
 	if err != nil {
 		return err
 	}

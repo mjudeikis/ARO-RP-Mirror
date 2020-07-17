@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 
+	"github.com/Azure/ARO-RP/pkg/deploy/config"
 	"github.com/Azure/ARO-RP/pkg/util/arm"
 )
 
@@ -42,7 +43,7 @@ func (g *generator) RPTemplate() (map[string]interface{}, error) {
 		"fpServicePrincipalId",
 		"rpServicePrincipalId",
 	}
-	if g.production {
+	if g.mode == config.ModeProduction {
 		params = append(params,
 			"acrResourceId",
 			"adminApiCaBundle",
@@ -75,7 +76,7 @@ func (g *generator) RPTemplate() (map[string]interface{}, error) {
 		t.Parameters[param] = p
 	}
 
-	if g.production {
+	if g.mode == config.ModeProduction {
 		t.Resources = append(t.Resources, g.pip(), g.lb(), g.vmss(),
 			g.lbAlert(30.0, 2, "rp-availability-alert", "PT5M", "PT5M", "DipAvailability"), // triggers on all 3 RPs being down for 3.5min, can't be >=0.3 due to deploys going down to 32% at times.
 			g.lbAlert(67.0, 3, "rp-degraded-alert", "PT15M", "PT6H", "DipAvailability"),    // 1/3 backend down for 1h or 2/3 down for 3h in the last 6h
@@ -192,7 +193,7 @@ func (g *generator) DatabaseTemplate() (map[string]interface{}, error) {
 func (g *generator) PreDeployTemplate() (map[string]interface{}, error) {
 	t := templateStanza()
 
-	if g.production {
+	if g.mode == config.ModeProduction {
 		t.Variables = map[string]interface{}{
 			"clusterKeyvaultAccessPolicies": g.clusterKeyvaultAccessPolicies(),
 			"serviceKeyvaultAccessPolicies": g.serviceKeyvaultAccessPolicies(),
@@ -205,7 +206,7 @@ func (g *generator) PreDeployTemplate() (map[string]interface{}, error) {
 		"fpServicePrincipalId",
 	}
 
-	if g.production {
+	if g.mode == config.ModeProduction {
 		params = append(params,
 			"deployNSGs",
 			"extraClusterKeyvaultAccessPolicies",
@@ -307,7 +308,7 @@ func (g *generator) templateFixup(t *arm.Template) (map[string]interface{}, erro
 
 	// :-(
 	b = bytes.ReplaceAll(b, []byte(tenantIDHack), []byte("[subscription().tenantId]"))
-	if g.production {
+	if g.mode == config.ModeProduction {
 		b = bytes.Replace(b, []byte(`"accessPolicies": []`), []byte(`"accessPolicies": "[concat(variables('clusterKeyvaultAccessPolicies'), parameters('extraClusterKeyvaultAccessPolicies'))]"`), 1)
 		b = bytes.Replace(b, []byte(`"accessPolicies": []`), []byte(`"accessPolicies": "[concat(variables('serviceKeyvaultAccessPolicies'), parameters('extraServiceKeyvaultAccessPolicies'))]"`), 1)
 		b = bytes.Replace(b, []byte(`"sourceAddressPrefixes": []`), []byte(`"sourceAddressPrefixes": "[parameters('rpNsgSourceAddressPrefixes')]"`), 1)
@@ -323,7 +324,7 @@ func (g *generator) templateFixup(t *arm.Template) (map[string]interface{}, erro
 }
 
 func (g *generator) conditionStanza(parameterName string) interface{} {
-	if g.production {
+	if g.mode == config.ModeProduction {
 		return "[parameters('" + parameterName + "')]"
 	}
 
