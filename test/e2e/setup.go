@@ -4,11 +4,15 @@ package e2e
 // Licensed under the Apache License 2.0.
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/Azure/go-autorest/autorest/to"
+
 	. "github.com/onsi/ginkgo"
 
+	mgmtredhatopenshift "github.com/Azure/ARO-RP/pkg/client/services/redhatopenshift/mgmt/2020-04-30/redhatopenshift"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	machineapiclient "github.com/openshift/machine-api-operator/pkg/generated/clientset/versioned"
 	"github.com/sirupsen/logrus"
@@ -50,12 +54,21 @@ func resourceIDFromEnv() string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.RedHatOpenShift/openShiftClusters/%s", subscriptionID, resourceGroup, clusterName)
 }
 
-func newClientSet(subscriptionID string) (*clientSet, error) {
+func setAzureClients(subscriptionID string) error {
 	authorizer, err := auth.NewAuthorizerFromEnvironment()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
+	clients.OpenshiftClusters = redhatopenshift.NewOpenShiftClustersClient(subscriptionID, authorizer)
+	clients.Operations = redhatopenshift.NewOperationsClient(subscriptionID, authorizer)
+	clients.VirtualMachines = compute.NewVirtualMachinesClient(subscriptionID, authorizer)
+	clients.Resources = features.NewResourcesClient(subscriptionID, authorizer)
+	clients.ActivityLogs = insights.NewActivityLogsClient(subscriptionID, authorizer)
+	return nil
+}
+
+func setKuberentesClients() error {
 	kubeconfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
@@ -63,29 +76,50 @@ func newClientSet(subscriptionID string) (*clientSet, error) {
 
 	restconfig, err := kubeconfig.ClientConfig()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	cli, err := kubernetes.NewForConfig(restconfig)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	machineapicli, err := machineapiclient.NewForConfig(restconfig)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &clientSet{
-		OpenshiftClusters: redhatopenshift.NewOpenShiftClustersClient(subscriptionID, authorizer),
-		Operations:        redhatopenshift.NewOperationsClient(subscriptionID, authorizer),
-		VirtualMachines:   compute.NewVirtualMachinesClient(subscriptionID, authorizer),
-		Resources:         features.NewResourcesClient(subscriptionID, authorizer),
-		ActivityLogs:      insights.NewActivityLogsClient(subscriptionID, authorizer),
+	clients.Kubernetes = cli
+	clients.MachineAPI = machineapicli
+	return nil
+}
 
-		Kubernetes: cli,
-		MachineAPI: machineapicli,
-	}, nil
+func createCluster() error {
+	parameters := mgmtredhatopenshift.OpenShiftCluster{
+		Location: to.StringPtr(os.Getenv("LOCATION")),
+		Name:     to.StringPtr(os.Getenv("CLUSTER")),
+		OpenShiftClusterProperties: &mgmtredhatopenshift.OpenShiftClusterProperties{
+			MasterProfile: &mgmtredhatopenshift.MasterProfile{
+				SubnetID: to.StringPtr(os.Getenv("CLUSTER") + "-master"),
+			},
+			WorkerProfiles: &[]mgmtredhatopenshift.WorkerProfile{
+				mgmtredhatopenshift.WorkerProfile{
+					SubnetID: to.StringPtr(os.Getenv("CLUSTER") + "-worker"),
+				},
+			},
+			ServicePrincipalProfile: &mgmtredhatopenshift.ServicePrincipalProfile{
+				ClientID:     to.StringPtr(os.Getenv("CLUSTER_SPN_ID")),
+				ClientSecret: to.StringPtr(os.Getenv("CLUSTER_SPN_SECRET")),
+			},
+		},
+	}
+
+	err := clients.OpenshiftClusters.CreateOrUpdateAndWait(context.Background(), os.Getenv("ARO_RESOURCEGROUP"), os.Getenv("CLUSTER"), parameters)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 var _ = BeforeSuite(func() {
@@ -101,9 +135,17 @@ var _ = BeforeSuite(func() {
 	}
 
 	subscriptionID := os.Getenv("AZURE_SUBSCRIPTION_ID")
+	err := setAzureClients(subscriptionID)
+	if err != nil {
+		panic(err)
+	}
 
-	var err error
-	clients, err = newClientSet(subscriptionID)
+	err = createCluster()
+	if err != nil {
+		panic(err)
+	}
+
+	err = setKuberentesClients()
 	if err != nil {
 		panic(err)
 	}
