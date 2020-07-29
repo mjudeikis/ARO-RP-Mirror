@@ -111,21 +111,12 @@ run_e2e() {
     ORIGINAL_SET_OPT=${-//[^x]/}
     set +x
 
-    CLUSTER_SPN_ID=$(cat $CLUSTERSPN | jq -r .appId)
-    CLUSTER_SPN_SECRET=$(cat $CLUSTERSPN | jq -r .password)
+    export CLUSTER_SPN_ID=$(cat $CLUSTERSPN | jq -r .appId)
+    export CLUSTER_SPN_SECRET=$(cat $CLUSTERSPN | jq -r .password)
 
     echo "########## 🚀 Create ARO Cluster $CLUSTER - Using client-id : $CLUSTER_SPN_ID ##########"
 
-    az aro create \
-      -g "$ARO_RESOURCEGROUP" \
-      -n "$CLUSTER" \
-      -l ${LOCATION^} \
-      --vnet dev-vnet \
-      --master-subnet "$CLUSTER-master" \
-      --worker-subnet "$CLUSTER-worker" \
-      --client-id "$CLUSTER_SPN_ID" \
-      --client-secret "$CLUSTER_SPN_SECRET" \
-      --cluster-resource-group "$CLUSTER_RESOURCEGROUP"
+    make test-e2e
 
     set -x
     echo "########## CLI : ARO List ##########"

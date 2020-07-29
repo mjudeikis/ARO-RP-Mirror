@@ -11,7 +11,17 @@ import (
 
 // VirtualNetworksClientAddons contains addons for VirtualNetworksClient
 type VirtualNetworksClientAddons interface {
+	CreateOrUpdateAndWait(ctx context.Context, resourceGroupName string, virtualNetworkName string, parameters mgmtnetwork.VirtualNetwork) (err error)
 	List(ctx context.Context, resourceGroupName string) (virtualnetworks []mgmtnetwork.VirtualNetwork, err error)
+}
+
+func (c *virtualNetworksClient) CreateOrUpdateAndWait(ctx context.Context, resourceGroupName string, virtualNetworkName string, parameters mgmtnetwork.VirtualNetwork) (err error) {
+	future, err := c.VirtualNetworksClient.CreateOrUpdate(ctx, resourceGroupName, virtualNetworkName, parameters)
+	if err != nil {
+		return err
+	}
+
+	return future.WaitForCompletionRef(ctx, c.Client)
 }
 
 func (c *virtualNetworksClient) List(ctx context.Context, resourceGroupName string) (virtualnetworks []mgmtnetwork.VirtualNetwork, err error) {
