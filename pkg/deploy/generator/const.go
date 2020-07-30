@@ -19,6 +19,7 @@ const (
 	FileRPProductionPredeployParameters = "rp-production-predeploy-parameters.json"
 	FileRPProduction                    = "rp-production.json"
 	FileRPProductionGlobal              = "rp-production-global.json"
+	FileRPProductionACRReplication      = "rp-production-acr-replication.json"
 	FileRPProductionGlobalSubscription  = "rp-production-global-subscription.json"
 	FileRPProductionParameters          = "rp-production-parameters.json"
 	FileRPProductionSubscription        = "rp-production-subscription.json"

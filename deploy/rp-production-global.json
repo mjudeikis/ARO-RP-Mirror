@@ -12,21 +12,11 @@
             "type": "bool",
             "defaultValue": false
         },
-        "location": {
-            "type": "string"
-        },
         "rpServicePrincipalId": {
             "type": "string"
         }
     },
     "resources": [
-        {
-            "name": "[concat(substring(parameters('acrResourceId'), add(lastIndexOf(parameters('acrResourceId'), '/'), 1)), '/', parameters('location'))]",
-            "type": "Microsoft.ContainerRegistry/registries/replications",
-            "location": "[parameters('location')]",
-            "condition": "[parameters('fullDeploy')]",
-            "apiVersion": "2019-05-01"
-        },
         {
             "name": "[concat(substring(parameters('acrResourceId'), add(lastIndexOf(parameters('acrResourceId'), '/'), 1)), '/', '/Microsoft.Authorization/', guid(concat(parameters('acrResourceId'), parameters('rpServicePrincipalId'), 'RP / AcrPull')))]",
             "type": "Microsoft.ContainerRegistry/registries/providers/roleAssignments",

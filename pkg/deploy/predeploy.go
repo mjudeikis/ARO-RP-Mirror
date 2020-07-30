@@ -59,6 +59,18 @@ func (d *deployer) PreDeploy(ctx context.Context) error {
 		return err
 	}
 
+	// Due to https://github.com/Azure/azure-resource-manager-schemas/issues/1067
+	// we can't use conditions to define ACR replication object deployment.
+	// We use ACRReplica in the same way as we use fullDeploy.
+	// Caveat is that acrReplica=true should be set as global default and overridden
+	// where needed.
+	if d.config.Configuration.ACRReplica {
+		err = d.deployACRReplication(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = d.deployGlobal(ctx, msi.PrincipalID.String())
 	if err != nil {
 		return err
@@ -95,11 +107,37 @@ func (d *deployer) deployGlobal(ctx context.Context, rpServicePrincipalID string
 	}
 
 	parameters := d.getParameters(template["parameters"].(map[string]interface{}))
-	parameters.Parameters["location"] = &arm.ParametersParameter{
-		Value: d.config.Location,
-	}
 	parameters.Parameters["rpServicePrincipalId"] = &arm.ParametersParameter{
 		Value: rpServicePrincipalID,
+	}
+
+	d.log.Infof("deploying %s", deploymentName)
+	return d.globaldeployments.CreateOrUpdateAndWait(ctx, d.config.Configuration.GlobalResourceGroupName, deploymentName, mgmtfeatures.Deployment{
+		Properties: &mgmtfeatures.DeploymentProperties{
+			Template:   template,
+			Mode:       mgmtfeatures.Incremental,
+			Parameters: parameters.Parameters,
+		},
+	})
+}
+
+func (d *deployer) deployACRReplication(ctx context.Context) error {
+	deploymentName := "rp-acr-replication-" + d.config.Location
+
+	b, err := Asset(generator.FileRPProductionACRReplication)
+	if err != nil {
+		return err
+	}
+
+	var template map[string]interface{}
+	err = json.Unmarshal(b, &template)
+	if err != nil {
+		return err
+	}
+
+	parameters := d.getParameters(template["parameters"].(map[string]interface{}))
+	parameters.Parameters["location"] = &arm.ParametersParameter{
+		Value: d.config.Location,
 	}
 
 	d.log.Infof("deploying %s", deploymentName)
