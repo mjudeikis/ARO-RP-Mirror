@@ -12,7 +12,7 @@ import (
 
 func (i *manager) disableUpdates(ctx context.Context) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		cv, err := i.configcli.ConfigV1().ClusterVersions().Get("version", metav1.GetOptions{})
+		cv, err := i.configcli.ConfigV1().ClusterVersions().Get(ctx, "version", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -20,7 +20,7 @@ func (i *manager) disableUpdates(ctx context.Context) error {
 		cv.Spec.Upstream = ""
 		cv.Spec.Channel = ""
 
-		_, err = i.configcli.ConfigV1().ClusterVersions().Update(cv)
+		_, err = i.configcli.ConfigV1().ClusterVersions().Update(ctx, cv, metav1.UpdateOptions{})
 		return err
 	})
 }

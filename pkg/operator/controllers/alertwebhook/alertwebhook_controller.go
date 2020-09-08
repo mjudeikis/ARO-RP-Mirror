@@ -4,6 +4,7 @@ package alertwebhook
 // Licensed under the Apache License 2.0.
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"reflect"
@@ -45,14 +46,16 @@ func (r *AlertWebhookReconciler) Reconcile(request ctrl.Request) (ctrl.Result, e
 		return reconcile.Result{}, nil
 	}
 
-	return reconcile.Result{}, r.setAlertManagerWebhook("http://aro-operator-master.openshift-azure-operator.svc.cluster.local:8080")
+	ctx := context.Background()
+
+	return reconcile.Result{}, r.setAlertManagerWebhook(ctx, "http://aro-operator-master.openshift-azure-operator.svc.cluster.local:8080")
 }
 
 // setAlertManagerWebhook is a hack to disable the
 // AlertmanagerReceiversNotConfigured warning added in 4.3.8.
-func (r *AlertWebhookReconciler) setAlertManagerWebhook(addr string) error {
+func (r *AlertWebhookReconciler) setAlertManagerWebhook(ctx context.Context, addr string) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		s, err := r.kubernetescli.CoreV1().Secrets(alertManagerName.Namespace).Get(alertManagerName.Name, metav1.GetOptions{})
+		s, err := r.kubernetescli.CoreV1().Secrets(alertManagerName.Namespace).Get(ctx, alertManagerName.Name, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -98,7 +101,7 @@ func (r *AlertWebhookReconciler) setAlertManagerWebhook(addr string) error {
 			return err
 		}
 
-		_, err = r.kubernetescli.CoreV1().Secrets(alertManagerName.Namespace).Update(s)
+		_, err = r.kubernetescli.CoreV1().Secrets(alertManagerName.Namespace).Update(ctx, s, metav1.UpdateOptions{})
 		return err
 	})
 }

@@ -13,7 +13,7 @@ import (
 )
 
 func (mon *Monitor) emitDeploymentStatuses(ctx context.Context) error {
-	ds, err := mon.cli.AppsV1().Deployments("").List(metav1.ListOptions{})
+	ds, err := mon.cli.AppsV1().Deployments("").List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return err
 	}

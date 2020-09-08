@@ -3,7 +3,6 @@ package clusterdata
 // Copyright (c) Microsoft Corporation.
 // Licensed under the Apache License 2.0.
 
-// TODO: After OpenShift 4.4, replace github.com/openshift/cluster-api with github.com/openshift/machine-api-operator
 import (
 	"context"
 	"fmt"
@@ -30,7 +29,7 @@ type OpenShiftClusterEnricher interface {
 type enricherTaskConstructor func(*logrus.Entry, *rest.Config, *api.OpenShiftCluster) (enricherTask, error)
 type enricherTask interface {
 	SetDefaults()
-	FetchData(chan<- func(), chan<- error)
+	FetchData(context.Context, chan<- func(), chan<- error)
 }
 
 // NewBestEffortEnricher returns an enricher that attempts to populate
@@ -124,7 +123,7 @@ func (e *bestEffortEnricher) enrichOne(ctx context.Context, oc *api.OpenShiftClu
 				})
 			}()
 
-			tasks[i].FetchData(callbacks, errors)
+			tasks[i].FetchData(ctx, callbacks, errors)
 		}(i) // https://golang.org/doc/faq#closures_and_goroutines
 	}
 

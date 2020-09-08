@@ -4,6 +4,7 @@ package e2e
 // Licensed under the Apache License 2.0.
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -123,7 +124,7 @@ var _ = Describe("ARO Operator - Geneva Logging", func() {
 		}
 	})
 	Specify("genevalogging must be repaired if deployment deleted", func() {
-		mdsdReady := ready.CheckDaemonSetIsReady(clients.Kubernetes.AppsV1().DaemonSets("openshift-azure-logging"), "mdsd")
+		mdsdReady := ready.CheckDaemonSetIsReady(context.TODO(), clients.Kubernetes.AppsV1().DaemonSets("openshift-azure-logging"), "mdsd")
 
 		err := wait.PollImmediate(30*time.Second, 15*time.Minute, mdsdReady)
 		Expect(err).NotTo(HaveOccurred())

@@ -1,4 +1,5 @@
-//go:generate go run . -o ../../cgmanifest.json
+// TODO: Migrate
+////go:generate go run . -o ../../cgmanifest.json
 
 package main
 

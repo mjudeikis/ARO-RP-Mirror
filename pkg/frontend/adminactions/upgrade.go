@@ -32,7 +32,7 @@ func (a *adminactions) Upgrade(ctx context.Context) error {
 
 func upgrade(ctx context.Context, log *logrus.Entry, configClient configclient.Interface) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		cv, err := configClient.ConfigV1().ClusterVersions().Get("version", metav1.GetOptions{})
+		cv, err := configClient.ConfigV1().ClusterVersions().Get(ctx, "version", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -60,7 +60,7 @@ func upgrade(ctx context.Context, log *logrus.Entry, configClient configclient.I
 			Image:   stream.PullSpec,
 		}
 
-		_, err = configClient.ConfigV1().ClusterVersions().Update(cv)
+		_, err = configClient.ConfigV1().ClusterVersions().Update(ctx, cv, metav1.UpdateOptions{})
 		return err
 	})
 }

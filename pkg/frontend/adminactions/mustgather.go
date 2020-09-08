@@ -22,20 +22,20 @@ import (
 
 func (a *adminactions) MustGather(ctx context.Context, w http.ResponseWriter) error {
 
-	ns, err := a.k8sClient.CoreV1().Namespaces().Create(&corev1.Namespace{
+	ns, err := a.k8sClient.CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "openshift-must-gather-",
 			Labels: map[string]string{
 				"openshift.io/run-level": "0",
 			},
 		},
-	})
+	}, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		err = a.k8sClient.CoreV1().Namespaces().Delete(ns.Name, nil)
+		err = a.k8sClient.CoreV1().Namespaces().Delete(ctx, ns.Name, metav1.DeleteOptions{})
 		if err != nil {
 			a.log.Error(err)
 		}
@@ -45,7 +45,7 @@ func (a *adminactions) MustGather(ctx context.Context, w http.ResponseWriter) er
 	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	err = wait.PollImmediateUntil(10*time.Second, func() (bool, error) {
-		_, err := a.k8sClient.CoreV1().ServiceAccounts(ns.Name).Get("default", metav1.GetOptions{})
+		_, err := a.k8sClient.CoreV1().ServiceAccounts(ns.Name).Get(ctx, "default", metav1.GetOptions{})
 		if err != nil {
 			return false, nil
 		}
@@ -56,7 +56,7 @@ func (a *adminactions) MustGather(ctx context.Context, w http.ResponseWriter) er
 		return err
 	}
 
-	crb, err := a.k8sClient.RbacV1().ClusterRoleBindings().Create(&rbacv1.ClusterRoleBinding{
+	crb, err := a.k8sClient.RbacV1().ClusterRoleBindings().Create(ctx, &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "must-gather-",
 		},
@@ -72,19 +72,19 @@ func (a *adminactions) MustGather(ctx context.Context, w http.ResponseWriter) er
 				Namespace: ns.Name,
 			},
 		},
-	})
+	}, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		err = a.k8sClient.RbacV1().ClusterRoleBindings().Delete(crb.Name, nil)
+		err = a.k8sClient.RbacV1().ClusterRoleBindings().Delete(ctx, crb.Name, metav1.DeleteOptions{})
 		if err != nil {
 			a.log.Error(err)
 		}
 	}()
 
-	pod, err := a.k8sClient.CoreV1().Pods(ns.Name).Create(&corev1.Pod{
+	pod, err := a.k8sClient.CoreV1().Pods(ns.Name).Create(ctx, &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "must-gather",
 		},
@@ -136,13 +136,13 @@ func (a *adminactions) MustGather(ctx context.Context, w http.ResponseWriter) er
 				},
 			},
 		},
-	})
+	}, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 
 	a.log.Info("waiting for must-gather pod")
-	err = wait.PollImmediateUntil(10*time.Second, ready.CheckPodIsRunning(a.k8sClient.CoreV1().Pods(pod.Namespace), pod.Name), ctx.Done())
+	err = wait.PollImmediateUntil(10*time.Second, ready.CheckPodIsRunning(ctx, a.k8sClient.CoreV1().Pods(pod.Namespace), pod.Name), ctx.Done())
 	if err != nil {
 		return err
 	}

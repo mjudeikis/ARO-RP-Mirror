@@ -14,7 +14,7 @@ func (i *manager) ensureAROOperator(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return dep.CreateOrUpdate()
+	return dep.CreateOrUpdate(ctx)
 }
 
 func (i *manager) aroDeploymentReady(ctx context.Context) (bool, error) {
@@ -22,5 +22,5 @@ func (i *manager) aroDeploymentReady(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return dep.IsReady()
+	return dep.IsReady(ctx)
 }

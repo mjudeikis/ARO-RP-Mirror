@@ -94,6 +94,7 @@ var registeredTypes = map[string]asset.Asset{
 	"*tls.AggregatorClientCertKey":                            &tls.AggregatorClientCertKey{},
 	"*tls.AggregatorSignerCertKey":                            &tls.AggregatorSignerCertKey{},
 	"*tls.APIServerProxyCertKey":                              &tls.APIServerProxyCertKey{},
+	"*tls.BootstrapSSHKeyPair":                                &tls.BootstrapSSHKeyPair{},
 	"*tls.EtcdCABundle":                                       &tls.EtcdCABundle{},
 	"*tls.EtcdMetricCABundle":                                 &tls.EtcdMetricCABundle{},
 	"*tls.EtcdMetricSignerCertKey":                            &tls.EtcdMetricSignerCertKey{},

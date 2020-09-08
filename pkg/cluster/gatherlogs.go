@@ -41,7 +41,7 @@ func (i *manager) logClusterVersion(ctx context.Context) (interface{}, error) {
 		return nil, nil
 	}
 
-	return i.configcli.ConfigV1().ClusterVersions().Get("version", metav1.GetOptions{})
+	return i.configcli.ConfigV1().ClusterVersions().Get(ctx, "version", metav1.GetOptions{})
 }
 
 func (i *manager) logClusterOperators(ctx context.Context) (interface{}, error) {
@@ -49,5 +49,5 @@ func (i *manager) logClusterOperators(ctx context.Context) (interface{}, error) 
 		return nil, nil
 	}
 
-	return i.configcli.ConfigV1().ClusterOperators().List(metav1.ListOptions{})
+	return i.configcli.ConfigV1().ClusterOperators().List(ctx, metav1.ListOptions{})
 }

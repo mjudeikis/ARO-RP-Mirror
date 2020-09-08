@@ -15,14 +15,14 @@ import (
 func (i *manager) updateConsoleBranding(ctx context.Context) error {
 	i.log.Print("updating console-operator branding")
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		operatorConfig, err := i.operatorcli.OperatorV1().Consoles().Get(consoleapi.ConfigResourceName, metav1.GetOptions{})
+		operatorConfig, err := i.operatorcli.OperatorV1().Consoles().Get(ctx, consoleapi.ConfigResourceName, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
 
 		operatorConfig.Spec.Customization.Brand = operatorv1.BrandAzure
 
-		_, err = i.operatorcli.OperatorV1().Consoles().Update(operatorConfig)
+		_, err = i.operatorcli.OperatorV1().Consoles().Update(ctx, operatorConfig, metav1.UpdateOptions{})
 		return err
 	})
 }

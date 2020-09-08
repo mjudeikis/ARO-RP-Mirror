@@ -23,14 +23,14 @@ func (i *manager) disableSamples(ctx context.Context) error {
 	}
 
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		c, err := i.samplescli.SamplesV1().Configs().Get("cluster", metav1.GetOptions{})
+		c, err := i.samplescli.SamplesV1().Configs().Get(ctx, "cluster", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
 
 		c.Spec.ManagementState = operatorv1.Removed
 
-		_, err = i.samplescli.SamplesV1().Configs().Update(c)
+		_, err = i.samplescli.SamplesV1().Configs().Update(ctx, c, metav1.UpdateOptions{})
 		return err
 	})
 }
@@ -50,7 +50,7 @@ func (i *manager) disableOperatorHubSources(ctx context.Context) error {
 			Resource("operatorhubs").
 			Name("cluster").
 			VersionedParams(&metav1.GetOptions{}, configscheme.ParameterCodec).
-			Do().
+			Do(ctx).
 			Into(c)
 		if err != nil {
 			return err
@@ -79,7 +79,7 @@ func (i *manager) disableOperatorHubSources(ctx context.Context) error {
 			Resource("operatorhubs").
 			Name("cluster").
 			Body(c).
-			Do().
+			Do(ctx).
 			Into(c)
 		return err
 	})

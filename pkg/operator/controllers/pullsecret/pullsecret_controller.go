@@ -4,6 +4,7 @@ package pullsecret
 // Licensed under the Apache License 2.0.
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/sirupsen/logrus"
@@ -60,13 +61,15 @@ func (r *PullSecretReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 		return reconcile.Result{}, nil
 	}
 
-	mysec, err := r.kubernetescli.CoreV1().Secrets(operator.Namespace).Get(operator.SecretName, metav1.GetOptions{})
+	ctx := context.Background()
+
+	mysec, err := r.kubernetescli.CoreV1().Secrets(operator.Namespace).Get(ctx, operator.SecretName, metav1.GetOptions{})
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
 	return reconcile.Result{}, retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		ps, isCreate, err := r.pullsecret()
+		ps, isCreate, err := r.pullsecret(ctx)
 		if err != nil {
 			return err
 		}
@@ -100,7 +103,7 @@ func (r *PullSecretReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 			r.log.Info("pull secret has the wrong type - recreating")
 
 			// unfortunately the type field is immutable.
-			err = r.kubernetescli.CoreV1().Secrets(ps.Namespace).Delete(ps.Name, nil)
+			err = r.kubernetescli.CoreV1().Secrets(ps.Namespace).Delete(ctx, ps.Name, metav1.DeleteOptions{})
 			if err != nil {
 				return err
 			}
@@ -117,17 +120,17 @@ func (r *PullSecretReconciler) Reconcile(request ctrl.Request) (ctrl.Result, err
 
 		if isCreate {
 			r.log.Info("re-creating pull secret")
-			_, err = r.kubernetescli.CoreV1().Secrets(ps.Namespace).Create(ps)
+			_, err = r.kubernetescli.CoreV1().Secrets(ps.Namespace).Create(ctx, ps, metav1.CreateOptions{})
 		} else {
 			r.log.Info("updating pull secret")
-			_, err = r.kubernetescli.CoreV1().Secrets(ps.Namespace).Update(ps)
+			_, err = r.kubernetescli.CoreV1().Secrets(ps.Namespace).Update(ctx, ps, metav1.UpdateOptions{})
 		}
 		return err
 	})
 }
 
-func (r *PullSecretReconciler) pullsecret() (*v1.Secret, bool, error) {
-	ps, err := r.kubernetescli.CoreV1().Secrets(pullSecretName.Namespace).Get(pullSecretName.Name, metav1.GetOptions{})
+func (r *PullSecretReconciler) pullsecret(ctx context.Context) (*v1.Secret, bool, error) {
+	ps, err := r.kubernetescli.CoreV1().Secrets(pullSecretName.Namespace).Get(ctx, pullSecretName.Name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		return &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{

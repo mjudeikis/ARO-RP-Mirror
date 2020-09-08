@@ -35,6 +35,7 @@ require (
 	github.com/onsi/gomega v1.10.1
 	github.com/openshift/api v3.9.1-0.20191111211345-a27ff30ebf09+incompatible
 	github.com/openshift/client-go v0.0.0-20200729195840-c2b1adc6bed6
+	github.com/openshift/cluster-api v0.0.0-20191129101638-b09907ac6668
 	github.com/openshift/console-operator v0.0.0-20200904235146-182ff9dbe857
 	github.com/openshift/installer v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-api-operator v0.2.1-0.20200527204437-14e5e0c7d862

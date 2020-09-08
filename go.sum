@@ -1316,6 +1316,7 @@ github.com/openshift/cluster-api-provider-aws v0.2.1-0.20200506073438-9d49428ff8
 github.com/openshift/cluster-api-provider-aws v0.2.1-0.20200506073438-9d49428ff837/go.mod h1:aXOt4gMtzXQxymPRm98vJAVmGjDhcTXsrQHauiNJK3o=
 github.com/openshift/cluster-api-provider-azure v0.0.0-20200529030741-17d4edc5142f h1:ogDranQv1AOOyHIKyWyZsXvUoUG5cHNfCPzpV3o1JjQ=
 github.com/openshift/cluster-api-provider-azure v0.0.0-20200529030741-17d4edc5142f/go.mod h1:XTKOAoCAzFtgljQ9HUs4KeTyczeFUoXa0S9+0R2WCmk=
+github.com/openshift/cluster-api-provider-azure v0.1.0-alpha.3 h1:YwsV8i7hNZN9V+PWOm9TBtlfQUfB8GRruRumQMWlDs8=
 github.com/openshift/cluster-api-provider-baremetal v0.0.0-20190821174549-a2a477909c1d h1:6+XwaVvSMPHm3nFdZW3g+iXiOHpf0Y2ajY5/Zr66Dt0=
 github.com/openshift/cluster-api-provider-baremetal v0.0.0-20190821174549-a2a477909c1d/go.mod h1:S+wtA0Rm2FZ5ccC9zNQXUWUDesR6Jsdn5eb6HjAR+Gs=
 github.com/openshift/cluster-api-provider-gcp v0.0.1-0.20200120152131-1b09fd9e7156 h1:FigvMhtTF7jCNkKvSwE3xP583ylW/CFcr0Jr6ZH698o=
