@@ -40,7 +40,7 @@ require (
 	github.com/openshift/installer v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-api-operator v0.2.1-0.20200527204437-14e5e0c7d862
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
-	github.com/operator-framework/operator-sdk v0.17.0
+	github.com/operator-framework/operator-sdk v0.19.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.13.0
 	github.com/satori/go.uuid v1.2.0
@@ -69,7 +69,7 @@ replace (
 	github.com/metal3-io/cluster-api-provider-baremetal => github.com/openshift/cluster-api-provider-baremetal v0.0.0-20190821174549-a2a477909c1d
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20200413201024-c6e8c9b6eb9a
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20200521150516-05eb9880269c
-	github.com/openshift/installer => github.com/jim-minter/installer v0.0.0-20200908132825-a83986e35e91
+	github.com/openshift/installer => github.com/jim-minter/installer v0.0.0-20200915125021-47a8a781f957
 	github.com/openshift/machine-api-operator => github.com/openshift/machine-api-operator v0.0.0-20200529045911-d19e8d007f7c
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.0-20200904000724-41d29dde06d6 // ARO Carry-on: to avoid k8s version miss-align
 	github.com/vmware/govmomi => github.com/vmware/govmomi v0.22.2-0.20200420222347-5fceac570f29
@@ -100,5 +100,4 @@ replace (
 	sigs.k8s.io/cluster-api-provider-azure => github.com/openshift/cluster-api-provider-azure v0.0.0-20200529030741-17d4edc5142f
 	sigs.k8s.io/cluster-api-provider-openstack => github.com/openshift/cluster-api-provider-openstack v0.0.0-20200526112135-319a35b2e38e
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.6.0
-	sigs.k8s.io/controller-tools => github.com/abhinavdahiya/controller-tools v0.3.1-0.20200430222905-6fdf2d5fc069 // Using fork for sigs.k8s.io/controller-tools#427
 )
