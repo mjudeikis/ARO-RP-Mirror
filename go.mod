@@ -19,17 +19,20 @@ require (
 	github.com/Azure/go-autorest/tracing v0.6.0
 	github.com/BurntSushi/toml v0.3.1
 	github.com/VividCortex/ewma v1.1.1 // indirect
+	github.com/alvaroloes/enumer v1.1.2
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/go-systemd v0.0.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/etcd-io/bbolt v0.0.0-00010101000000-000000000000 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/go-bindata/go-bindata v3.1.2+incompatible
 	github.com/go-logr/logr v0.2.1
 	github.com/golang/mock v1.3.1
 	github.com/google/go-cmp v0.5.2
 	github.com/googleapis/gnostic v0.4.1
 	github.com/gorilla/mux v1.8.0
+	github.com/jim-minter/go-cosmosdb v0.0.0-20200401152143-0e3ac7c97cf2
 	github.com/jmespath/go-jmespath v0.3.0
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
@@ -55,8 +58,10 @@ require (
 	k8s.io/apiextensions-apiserver v0.19.0-rc.2
 	k8s.io/apimachinery v0.19.0-rc.2
 	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/code-generator v0.18.3
 	sigs.k8s.io/cluster-api-provider-azure v0.0.0
 	sigs.k8s.io/controller-runtime v0.6.2
+	sigs.k8s.io/controller-tools v0.3.0
 )
 
 replace (
