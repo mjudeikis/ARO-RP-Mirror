@@ -2,4 +2,11 @@
 
 Each release we need to re-publish RHCOS image into azure cloud partners portal.
 
-* Get new RHCOS image location in (azure)[https://github.com/jim-minter/installer/blob/release-4.5-azure/data/data/rhcos-amd64.json]
+1. Once new installer is vendored run `make vendor` to update local vendor directory.
+
+1. Run `make generate` to update generated content
+
+1. Run `go run ./hack/rhcos-sas/rhcos-sas.go` to copy RHCOS image. This might take a while.
+
+1. Command above will output SAS URL. Publish it via (partner)[https://partner.microsoft.com/] portal.
+If you need images/icons for the offer, you can find them in `docs/img`.
