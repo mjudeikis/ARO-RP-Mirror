@@ -1,6 +1,9 @@
 // +build tools
 
 // tools is a dummy package that will be ignored for builds, but included for dependencies
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the Apache License 2.0.
 package tools
 
 import (

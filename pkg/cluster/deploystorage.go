@@ -178,15 +178,7 @@ func (i *manager) deployStorageTemplate(ctx context.Context, installConfig *inst
 					"Microsoft.Storage/storageAccounts/cluster" + i.doc.OpenShiftCluster.Properties.StorageSuffix,
 				},
 			},
-			i.apiServerNSG(installConfig.Config.Azure.Region),
-			{
-				Resource: &mgmtnetwork.SecurityGroup{
-					Name:     to.StringPtr(infraID + subnet.NSGNodeSuffix),
-					Type:     to.StringPtr("Microsoft.Network/networkSecurityGroups"),
-					Location: &installConfig.Config.Azure.Region,
-				},
-				APIVersion: azureclient.APIVersions["Microsoft.Network"],
-			},
+			i.clusterNSG(installConfig.Config.Azure.Region),
 		},
 	}
 

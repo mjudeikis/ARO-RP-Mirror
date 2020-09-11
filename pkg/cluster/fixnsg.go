@@ -25,7 +25,7 @@ func (i *manager) fixNSG(ctx context.Context) error {
 
 	resourceGroup := stringutils.LastTokenByte(i.doc.OpenShiftCluster.Properties.ClusterProfile.ResourceGroupID, '/')
 
-	nsg, err := i.securitygroups.Get(ctx, resourceGroup, infraID+subnet.NSGControlPlaneSuffix, "")
+	nsg, err := i.securitygroups.Get(ctx, resourceGroup, infraID+subnet.NSGSuffix, "")
 	if err != nil {
 		return err
 	}
@@ -54,5 +54,5 @@ func (i *manager) fixNSG(ctx context.Context) error {
 
 	nsg.SecurityRules = &rules
 
-	return i.securitygroups.CreateOrUpdateAndWait(ctx, resourceGroup, infraID+subnet.NSGControlPlaneSuffix, nsg)
+	return i.securitygroups.CreateOrUpdateAndWait(ctx, resourceGroup, infraID+subnet.NSGSuffix, nsg)
 }

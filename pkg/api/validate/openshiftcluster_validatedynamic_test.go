@@ -168,8 +168,8 @@ func TestValidateVnet(t *testing.T) {
 	vnetID := resourceGroupID + "/providers/Microsoft.Network/virtualNetworks/testVnet"
 	masterSubnet := vnetID + "/subnet/masterSubnet"
 	workerSubnet := vnetID + "/subnet/workerSubnet"
-	masterNSG := resourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/aro-controlplane-nsg"
-	workerNSG := resourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/aro-node-nsg"
+	masterNSG := resourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/aro-nsg"
+	workerNSG := resourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/aro-nsg"
 
 	for _, tt := range []struct {
 		name       string
@@ -230,14 +230,14 @@ func TestValidateVnet(t *testing.T) {
 			modifyVnet: func(vnet *mgmtnetwork.VirtualNetwork) {
 				(*vnet.Subnets)[0].NetworkSecurityGroup = nil
 			},
-			wantErr: `400: InvalidLinkedVNet: properties.masterProfile.subnetId: The provided subnet '/subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/testGroup/providers/Microsoft.Network/virtualNetworks/testVnet/subnet/masterSubnet' is invalid: must have network security group '/subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/testGroup/providers/Microsoft.Network/networkSecurityGroups/aro-controlplane-nsg' attached.`,
+			wantErr: `400: InvalidLinkedVNet: properties.masterProfile.subnetId: The provided subnet '/subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/testGroup/providers/Microsoft.Network/virtualNetworks/testVnet/subnet/masterSubnet' is invalid: must have network security group '/subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/testGroup/providers/Microsoft.Network/networkSecurityGroups/aro-nsg' attached.`,
 		},
 		{
 			name: "invalid worker nsg",
 			modifyVnet: func(vnet *mgmtnetwork.VirtualNetwork) {
 				(*vnet.Subnets)[1].NetworkSecurityGroup = nil
 			},
-			wantErr: `400: InvalidLinkedVNet: properties.workerProfiles["worker"].subnetId: The provided subnet '/subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/testGroup/providers/Microsoft.Network/virtualNetworks/testVnet/subnet/workerSubnet' is invalid: must have network security group '/subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/testGroup/providers/Microsoft.Network/networkSecurityGroups/aro-node-nsg' attached.`,
+			wantErr: `400: InvalidLinkedVNet: properties.workerProfiles["worker"].subnetId: The provided subnet '/subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/testGroup/providers/Microsoft.Network/virtualNetworks/testVnet/subnet/workerSubnet' is invalid: must have network security group '/subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/testGroup/providers/Microsoft.Network/networkSecurityGroups/aro-nsg' attached.`,
 		},
 		{
 			name: "invalid master nsg (creating)",

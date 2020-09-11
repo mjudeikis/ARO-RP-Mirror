@@ -122,7 +122,7 @@ func run(log *logrus.Entry) error {
 		if len(mod.VendorList) == 0 {
 			continue
 		}
-		for vendorFile, _ := range mod.VendorList {
+		for vendorFile := range mod.VendorList {
 			for _, subpkg := range mod.Pkgs {
 				path := filepath.Join(mod.Dir, importPathIntersect(mod.ImportPath, subpkg))
 

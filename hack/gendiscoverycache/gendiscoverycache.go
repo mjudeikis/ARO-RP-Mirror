@@ -61,7 +61,7 @@ func run(ctx context.Context, log *logrus.Entry) error {
 }
 
 func getClusterVersion(cvClient configclient.Interface) (string, error) {
-	cv, err := cvClient.ConfigV1().ClusterVersions().Get("version", metav1.GetOptions{})
+	cv, err := cvClient.ConfigV1().ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}

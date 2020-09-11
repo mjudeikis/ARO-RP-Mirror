@@ -32,7 +32,7 @@ func TestFixNSG(t *testing.T) {
 			infraID:    "test",
 			visibility: api.VisibilityPrivate,
 			mocks: func(nsgc *mock_network.MockSecurityGroupsClient) {
-				nsgc.EXPECT().Get(gomock.Any(), "test-cluster", "test-controlplane-nsg", "").Return(
+				nsgc.EXPECT().Get(gomock.Any(), "test-cluster", "test-nsg", "").Return(
 					mgmtnetwork.SecurityGroup{}, nil)
 			},
 		},
@@ -41,7 +41,7 @@ func TestFixNSG(t *testing.T) {
 			infraID:    "test",
 			visibility: api.VisibilityPrivate,
 			mocks: func(nsgc *mock_network.MockSecurityGroupsClient) {
-				nsgc.EXPECT().Get(gomock.Any(), "test-cluster", "test-controlplane-nsg", "").Return(
+				nsgc.EXPECT().Get(gomock.Any(), "test-cluster", "test-nsg", "").Return(
 					mgmtnetwork.SecurityGroup{
 						SecurityGroupPropertiesFormat: &mgmtnetwork.SecurityGroupPropertiesFormat{
 							SecurityRules: &[]mgmtnetwork.SecurityRule{
@@ -55,7 +55,7 @@ func TestFixNSG(t *testing.T) {
 						},
 					}, nil)
 
-				nsgc.EXPECT().CreateOrUpdateAndWait(gomock.Any(), "test-cluster", "test-controlplane-nsg",
+				nsgc.EXPECT().CreateOrUpdateAndWait(gomock.Any(), "test-cluster", "test-nsg",
 					mgmtnetwork.SecurityGroup{
 						SecurityGroupPropertiesFormat: &mgmtnetwork.SecurityGroupPropertiesFormat{
 							SecurityRules: &[]mgmtnetwork.SecurityRule{},
