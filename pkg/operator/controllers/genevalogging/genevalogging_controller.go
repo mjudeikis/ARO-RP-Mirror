@@ -75,7 +75,7 @@ func (r *GenevaloggingReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	}
 	gl := New(r.log, instance, r.securitycli, mysec.Data[GenevaCertName], mysec.Data[GenevaKeyName])
 
-	resources, err := gl.Resources(context.TODO())
+	resources, err := gl.Resources(ctx)
 	if err != nil {
 		r.log.Error(err)
 		return reconcile.Result{}, err
