@@ -28,11 +28,12 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-bindata/go-bindata v3.1.2+incompatible
 	github.com/go-logr/logr v0.2.1
+	github.com/go-test/deep v1.0.5
 	github.com/golang/mock v1.3.1
 	github.com/google/go-cmp v0.5.2
 	github.com/googleapis/gnostic v0.4.1
 	github.com/gorilla/mux v1.8.0
-	github.com/jim-minter/go-cosmosdb v0.0.0-20200401152143-0e3ac7c97cf2
+	github.com/jim-minter/go-cosmosdb v0.0.0-20200923160222-1528d2db09d6
 	github.com/jmespath/go-jmespath v0.3.0
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1

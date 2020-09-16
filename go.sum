@@ -629,6 +629,7 @@ github.com/go-test/deep v1.0.2-0.20181118220953-042da051cf31/go.mod h1:wGDj63lr6
 github.com/go-test/deep v1.0.2/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/go-test/deep v1.0.3/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/go-test/deep v1.0.4/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
+github.com/go-test/deep v1.0.5 h1:AKODKU3pDH1RzZzm6YZu77YWtEAq6uh1rLIAQlay2qc=
 github.com/go-test/deep v1.0.5/go.mod h1:QV8Hv/iy04NyLBxAdO9njL0iVPN1S4d/A3NVv1V36o8=
 github.com/go-toolsmith/astcast v1.0.0/go.mod h1:mt2OdQTeAQcY4DQgPSArJjHCcOwlX+Wl/kwN+LbLGQ4=
 github.com/go-toolsmith/astcopy v1.0.0/go.mod h1:vrgyG+5Bxrnz4MZWPF+pI4R8h3qKRjjyvV/DSez4WVQ=
@@ -1013,6 +1014,8 @@ github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJS
 github.com/jhump/protoreflect v1.6.0/go.mod h1:eaTn3RZAmMBcV0fifFvlm6VHNz3wSkYyXYWUh7ymB74=
 github.com/jim-minter/go-cosmosdb v0.0.0-20200401152143-0e3ac7c97cf2 h1:QifbtjIHwUIhPnRK9Rn+VYeJUGD/oosrvdmgALPdNnw=
 github.com/jim-minter/go-cosmosdb v0.0.0-20200401152143-0e3ac7c97cf2/go.mod h1:fTvDmpVqcmolOdtE7NltKskFwy8jLRDKHTczX+ZVHTU=
+github.com/jim-minter/go-cosmosdb v0.0.0-20200923160222-1528d2db09d6 h1:4HhzSzhgL1TDsdVqsyifRovCuWwogmz3tL8LQkvqOxQ=
+github.com/jim-minter/go-cosmosdb v0.0.0-20200923160222-1528d2db09d6/go.mod h1:fTvDmpVqcmolOdtE7NltKskFwy8jLRDKHTczX+ZVHTU=
 github.com/jim-minter/installer v0.0.0-20200915125021-47a8a781f957 h1:ZxFnbWTDaU6fV74vottz4QdIrDjWB2jWrnz9PsvfI7o=
 github.com/jim-minter/installer v0.0.0-20200915125021-47a8a781f957/go.mod h1:kzBny9eOuqsCv0vtQnOt1A/TD/r4A6Qs9dzHPzDNp5k=
 github.com/jimstudt/http-authentication v0.0.0-20140401203705-3eca13d6893a/go.mod h1:wK6yTYYcgjHE1Z1QtXACPDjcFJyBskHEdagmnq3vsP8=

@@ -9,14 +9,17 @@
             "namespaced": false,
             "kind": "ClusterAutoscaler",
             "verbs": [
-                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
+                "create",
                 "update",
                 "watch"
+            ],
+            "shortNames": [
+                "ca"
             ],
             "storageVersionHash": "zBaLBLdlZGk="
         },
