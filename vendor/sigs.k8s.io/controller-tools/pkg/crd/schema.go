@@ -19,7 +19,6 @@ package crd
 import (
 	"fmt"
 	"go/ast"
-	"go/token"
 	"go/types"
 	"strings"
 
@@ -232,15 +231,9 @@ func namedToSchema(ctx *schemaContext, named *ast.SelectorExpr) *apiext.JSONSche
 		ctx.pkg.AddError(loader.ErrFromNode(fmt.Errorf("unknown type %v.%s", named.X, named.Sel.Name), named))
 		return &apiext.JSONSchemaProps{}
 	}
-
 	typeInfo := typeInfoRaw.(*types.Named)
 	typeNameInfo := typeInfo.Obj()
 	nonVendorPath := loader.NonVendorPath(typeNameInfo.Pkg().Path())
-	_, knownPkg := KnownPackages[nonVendorPath]
-	if !knownPkg && implementsJSONMarshaler(typeInfoRaw) {
-		return &apiext.JSONSchemaProps{Type: "Any"}
-	}
-
 	ctx.requestSchema(nonVendorPath, typeNameInfo.Name())
 	link := TypeRefLink(nonVendorPath, typeNameInfo.Name())
 	return &apiext.JSONSchemaProps{
@@ -318,19 +311,6 @@ func mapToSchema(ctx *schemaContext, mapType *ast.MapType) *apiext.JSONSchemaPro
 	}
 }
 
-// Open coded go/types representation of encoding/json.Marshaller
-var jsonMarshaler = types.NewInterfaceType([]*types.Func{
-	types.NewFunc(token.NoPos, nil, "MarshalJSON",
-		types.NewSignature(nil, nil,
-			types.NewTuple(
-				types.NewVar(token.NoPos, nil, "", types.NewSlice(types.Universe.Lookup("byte").Type())),
-				types.NewVar(token.NoPos, nil, "", types.Universe.Lookup("error").Type())), false)),
-}, nil).Complete()
-
-func implementsJSONMarshaler(typ types.Type) bool {
-	return types.Implements(typ, jsonMarshaler) || types.Implements(types.NewPointer(typ), jsonMarshaler)
-}
-
 // structToSchema creates a schema for the given struct.  Embedded fields are placed in AllOf,
 // and can be flattened later with a Flattener.
 func structToSchema(ctx *schemaContext, structType *ast.StructType) *apiext.JSONSchemaProps {
@@ -342,13 +322,6 @@ func structToSchema(ctx *schemaContext, structType *ast.StructType) *apiext.JSON
 	if ctx.info.RawSpec.Type != structType {
 		ctx.pkg.AddError(loader.ErrFromNode(fmt.Errorf("encountered non-top-level struct (possibly embedded), those aren't allowed"), structType))
 		return props
-	}
-
-	if obj := ctx.pkg.Types.Scope().Lookup(ctx.info.Name); obj != nil {
-		_, knownPkg := KnownPackages[loader.NonVendorPath(ctx.pkg.PkgPath)]
-		if !knownPkg && implementsJSONMarshaler(obj.Type()) {
-			return &apiext.JSONSchemaProps{Type: "Any"}
-		}
 	}
 
 	for _, field := range ctx.info.Fields {
