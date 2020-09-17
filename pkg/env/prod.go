@@ -23,19 +23,13 @@ import (
 	"github.com/Azure/ARO-RP/pkg/util/azureclient/mgmt/dns"
 	"github.com/Azure/ARO-RP/pkg/util/azureclient/mgmt/documentdb"
 	"github.com/Azure/ARO-RP/pkg/util/clientauthorizer"
-	"github.com/Azure/ARO-RP/pkg/util/deployment"
-	"github.com/Azure/ARO-RP/pkg/util/instancemetadata"
 	"github.com/Azure/ARO-RP/pkg/util/keyvault"
 	"github.com/Azure/ARO-RP/pkg/util/refreshable"
-	"github.com/Azure/ARO-RP/pkg/util/rpauthorizer"
 	"github.com/Azure/ARO-RP/pkg/util/version"
 )
 
 type prod struct {
-	deployment.Mode
-	instancemetadata.InstanceMetadata
-	rpauthorizer.RPAuthorizer
-	servicekeyvault keyvault.Manager
+	Core
 
 	armClientAuthorizer   clientauthorizer.ClientAuthorizer
 	adminClientAuthorizer clientauthorizer.ClientAuthorizer
@@ -45,7 +39,6 @@ type prod struct {
 	cosmosDBAccountName      string
 	cosmosDBPrimaryMasterKey string
 	domain                   string
-	serviceKeyvaultURI       string
 	zones                    map[string][]string
 
 	fpCertificate        *x509.Certificate
@@ -64,36 +57,24 @@ type prod struct {
 	log *logrus.Entry
 }
 
-func newProd(ctx context.Context, log *logrus.Entry, deploymentMode deployment.Mode) (*prod, error) {
-	instancemetadata, err := instancemetadata.New(ctx, deploymentMode)
-	if err != nil {
-		return nil, err
-	}
-
-	rpauthorizer, err := rpauthorizer.New(deploymentMode)
-	if err != nil {
-		return nil, err
-	}
-
-	rpAuthorizer, err := rpauthorizer.NewRPAuthorizer(azure.PublicCloud.ResourceManagerEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	kvAuthorizer, err := rpauthorizer.NewRPAuthorizer(azure.PublicCloud.ResourceIdentifiers.KeyVault)
+func newProd(ctx context.Context, log *logrus.Entry) (*prod, error) {
+	core, err := NewCore(ctx, log)
 	if err != nil {
 		return nil, err
 	}
 
 	p := &prod{
-		Mode:             deploymentMode,
-		InstanceMetadata: instancemetadata,
-		RPAuthorizer:     rpauthorizer,
+		Core: core,
 
 		clustersGenevaLoggingEnvironment:   "DiagnosticsProd",
 		clustersGenevaLoggingConfigVersion: "2.2",
 
 		log: log,
+	}
+
+	rpAuthorizer, err := p.NewRPAuthorizer(azure.PublicCloud.ResourceManagerEndpoint)
+	if err != nil {
+		return nil, err
 	}
 
 	err = p.populateCosmosDB(ctx, rpAuthorizer)
@@ -111,19 +92,12 @@ func newProd(ctx context.Context, log *logrus.Entry, deploymentMode deployment.M
 		return nil, err
 	}
 
-	p.serviceKeyvaultURI, err = keyvault.Find(ctx, p, p, generator.ServiceKeyVaultTagValue)
-	if err != nil {
-		return nil, err
-	}
-
-	p.servicekeyvault = keyvault.NewManager(kvAuthorizer, p.serviceKeyvaultURI)
-
 	err = p.populateZones(ctx, rpAuthorizer)
 	if err != nil {
 		return nil, err
 	}
 
-	fpPrivateKey, fpCertificates, err := p.servicekeyvault.GetCertificateSecret(ctx, RPFirstPartySecretName)
+	fpPrivateKey, fpCertificates, err := p.ServiceKeyvault().GetCertificateSecret(ctx, RPFirstPartySecretName)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +106,7 @@ func newProd(ctx context.Context, log *logrus.Entry, deploymentMode deployment.M
 	p.fpCertificate = fpCertificates[0]
 	p.fpServicePrincipalID = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 
-	clustersGenevaLoggingPrivateKey, clustersGenevaLoggingCertificates, err := p.servicekeyvault.GetCertificateSecret(ctx, ClusterLoggingSecretName)
+	clustersGenevaLoggingPrivateKey, clustersGenevaLoggingCertificates, err := p.ServiceKeyvault().GetCertificateSecret(ctx, ClusterLoggingSecretName)
 	if err != nil {
 		return nil, err
 	}
@@ -329,10 +303,6 @@ func (p *prod) ManagedDomain(domain string) (string, error) {
 
 func (p *prod) MetricsSocketPath() string {
 	return "/var/etw/mdm_statsd.socket"
-}
-
-func (p *prod) ServiceKeyvault() keyvault.Manager {
-	return p.servicekeyvault
 }
 
 func (p *prod) Zones(vmSize string) ([]string, error) {
