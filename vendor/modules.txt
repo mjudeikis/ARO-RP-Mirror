@@ -1,5 +1,7 @@
 # cloud.google.com/go v0.49.0
 cloud.google.com/go/compute/metadata
+# github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737
+github.com/AlekSi/gocov-xml
 # github.com/Azure/azure-sdk-for-go v46.0.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/latest/dns/mgmt/dns
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute
@@ -105,6 +107,11 @@ github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi
 github.com/aws/aws-sdk-go/service/route53
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
+# github.com/axw/gocov v1.0.0
+github.com/axw/gocov
+github.com/axw/gocov/gocov
+github.com/axw/gocov/gocov/internal/testflag
+github.com/axw/gocov/gocovutil
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.1
@@ -301,6 +308,10 @@ github.com/jim-minter/go-cosmosdb/pkg/gencosmosdb
 github.com/jmespath/go-jmespath
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
+# github.com/jstemmer/go-junit-report v0.9.1
+github.com/jstemmer/go-junit-report
+github.com/jstemmer/go-junit-report/formatter
+github.com/jstemmer/go-junit-report/parser
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 github.com/kballard/go-shellquote
 # github.com/klauspost/compress v1.7.2
@@ -724,6 +735,7 @@ golang.org/x/text/width
 golang.org/x/time/rate
 # golang.org/x/tools v0.0.0-20200430192856-2840dafb9ee1
 golang.org/x/tools/cmd/goimports
+golang.org/x/tools/cover
 golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/gcimporter

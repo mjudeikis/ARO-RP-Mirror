@@ -283,6 +283,15 @@
             "component": {
                 "type": "go",
                 "go": {
+                    "version": "v0.0.0-20190121064608-3a14fb1c4737",
+                    "name": "github.com/AlekSi/gocov-xml"
+                }
+            }
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
                     "version": "v0.2.1",
                     "name": "github.com/Azure/azure-pipeline-go"
                 }

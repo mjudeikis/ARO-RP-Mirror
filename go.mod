@@ -9,6 +9,7 @@ exclude (
 )
 
 require (
+	github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737
 	github.com/Azure/azure-sdk-for-go v46.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.4
 	github.com/Azure/go-autorest/autorest/adal v0.9.2
@@ -20,6 +21,7 @@ require (
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/alvaroloes/enumer v1.1.2
 	github.com/apparentlymart/go-cidr v1.1.0
+	github.com/axw/gocov v1.0.0
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/go-systemd v0.0.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -34,6 +36,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/jim-minter/go-cosmosdb v0.0.0-20200923160222-1528d2db09d6
 	github.com/jmespath/go-jmespath v0.3.0
+	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
 	github.com/openshift/api v3.9.1-0.20191111211345-a27ff30ebf09+incompatible

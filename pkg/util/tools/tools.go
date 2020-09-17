@@ -7,10 +7,13 @@
 package tools
 
 import (
+	_ "github.com/AlekSi/gocov-xml"
 	_ "github.com/alvaroloes/enumer"
+	_ "github.com/axw/gocov/gocov"
 	_ "github.com/go-bindata/go-bindata/go-bindata"
 	_ "github.com/golang/mock/mockgen"
 	_ "github.com/jim-minter/go-cosmosdb/cmd/gencosmosdb"
+	_ "github.com/jstemmer/go-junit-report"
 	_ "github.com/onsi/ginkgo"
 	_ "github.com/onsi/gomega"
 	_ "golang.org/x/tools/cmd/goimports"
