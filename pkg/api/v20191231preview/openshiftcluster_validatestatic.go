@@ -14,6 +14,7 @@ import (
 
 	"github.com/Azure/ARO-RP/pkg/api"
 	"github.com/Azure/ARO-RP/pkg/api/validate"
+	"github.com/Azure/ARO-RP/pkg/util/deployment"
 	"github.com/Azure/ARO-RP/pkg/util/immutable"
 	"github.com/Azure/ARO-RP/pkg/util/pullsecret"
 	"github.com/Azure/ARO-RP/pkg/util/subnet"
@@ -21,10 +22,10 @@ import (
 )
 
 type openShiftClusterStaticValidator struct {
-	location        string
-	domain          string
-	developmentMode bool
-	resourceID      string
+	location       string
+	domain         string
+	deploymentMode deployment.Mode
+	resourceID     string
 
 	r azure.Resource
 }
@@ -228,7 +229,7 @@ func (sv *openShiftClusterStaticValidator) validateWorkerProfile(path string, wp
 	if wp.Name != "worker" {
 		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".name", "The provided worker name '%s' is invalid.", wp.Name)
 	}
-	if sv.developmentMode {
+	if sv.deploymentMode == deployment.Development {
 		if wp.VMSize != VMSizeStandardD2sV3 {
 			return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".vmSize", "The provided worker VM size '%s' is invalid in development mode.", wp.VMSize)
 		}
