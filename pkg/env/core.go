@@ -19,7 +19,7 @@ import (
 )
 
 type Core interface {
-	deployment.Mode
+	DeploymentMode() deployment.Mode
 	instancemetadata.InstanceMetadata
 	rpauthorizer.RPAuthorizer
 
@@ -28,11 +28,15 @@ type Core interface {
 }
 
 type core struct {
-	deployment.Mode
 	instancemetadata.InstanceMetadata
 	rpauthorizer.RPAuthorizer
 
+	deploymentMode  deployment.Mode
 	servicekeyvault keyvault.Manager
+}
+
+func (c *core) DeploymentMode() deployment.Mode {
+	return c.deploymentMode
 }
 
 func (c *core) GetBase64Secret(ctx context.Context, secretName string) ([]byte, error) {
@@ -74,9 +78,10 @@ func NewCore(ctx context.Context, log *logrus.Entry) (Core, error) {
 	}
 
 	return &core{
-		Mode:             deploymentMode,
 		InstanceMetadata: instancemetadata,
 		RPAuthorizer:     rpauthorizer,
-		servicekeyvault:  keyvault.NewManager(kvAuthorizer, serviceKeyvaultURI),
+
+		deploymentMode:  deploymentMode,
+		servicekeyvault: keyvault.NewManager(kvAuthorizer, serviceKeyvaultURI),
 	}, nil
 }

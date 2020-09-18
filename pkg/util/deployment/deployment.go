@@ -8,21 +8,13 @@ import (
 	"strings"
 )
 
-type mode int
-
-type Mode interface {
-	DeploymentMode() Mode
-}
+type Mode int
 
 const (
-	Production mode = iota
+	Production Mode = iota
 	Integration
 	Development
 )
-
-func (m mode) DeploymentMode() Mode {
-	return m
-}
 
 func NewMode() Mode {
 	switch strings.ToLower(os.Getenv("RP_MODE")) {
