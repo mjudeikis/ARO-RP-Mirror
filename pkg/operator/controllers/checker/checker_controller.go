@@ -4,10 +4,11 @@ package checker
 // Licensed under the Apache License 2.0.
 
 import (
+	"context"
 	"time"
 
-	machinev1beta1 "github.com/openshift/cluster-api/pkg/apis/machine/v1beta1"
-	clusterapi "github.com/openshift/cluster-api/pkg/client/clientset_generated/clientset"
+	machinev1beta1 "github.com/openshift/machine-api-operator/pkg/apis/machine/v1beta1"
+	clusterapi "github.com/openshift/machine-api-operator/pkg/generated/clientset/versioned"
 	"github.com/sirupsen/logrus"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -52,7 +53,7 @@ func NewReconciler(log *logrus.Entry, clustercli clusterapi.Interface, arocli ar
 func (r *CheckerController) Reconcile(request ctrl.Request) (ctrl.Result, error) {
 	var err error
 	for _, c := range r.checkers {
-		thisErr := c.Check()
+		thisErr := c.Check(context.Background())
 		if thisErr != nil {
 			// do all checks even if there is an error
 			err = thisErr

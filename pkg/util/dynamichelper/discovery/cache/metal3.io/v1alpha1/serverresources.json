@@ -9,12 +9,12 @@
             "namespaced": true,
             "kind": "BareMetalHost",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -41,12 +41,12 @@
             "namespaced": false,
             "kind": "Provisioning",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],

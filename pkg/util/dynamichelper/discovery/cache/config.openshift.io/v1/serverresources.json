@@ -4,17 +4,73 @@
     "groupVersion": "config.openshift.io/v1",
     "resources": [
         {
-            "name": "builds",
-            "singularName": "build",
+            "name": "apiservers",
+            "singularName": "apiserver",
             "namespaced": false,
-            "kind": "Build",
+            "kind": "APIServer",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
+                "update",
+                "watch"
+            ],
+            "storageVersionHash": "yr4VqIMvOkg="
+        },
+        {
+            "name": "apiservers/status",
+            "singularName": "",
+            "namespaced": false,
+            "kind": "APIServer",
+            "verbs": [
+                "get",
+                "patch",
+                "update"
+            ]
+        },
+        {
+            "name": "authentications",
+            "singularName": "authentication",
+            "namespaced": false,
+            "kind": "Authentication",
+            "verbs": [
                 "create",
+                "delete",
+                "deletecollection",
+                "get",
+                "list",
+                "patch",
+                "update",
+                "watch"
+            ],
+            "storageVersionHash": "GY8wWr8iSHA="
+        },
+        {
+            "name": "authentications/status",
+            "singularName": "",
+            "namespaced": false,
+            "kind": "Authentication",
+            "verbs": [
+                "get",
+                "patch",
+                "update"
+            ]
+        },
+        {
+            "name": "builds",
+            "singularName": "build",
+            "namespaced": false,
+            "kind": "Build",
+            "verbs": [
+                "create",
+                "delete",
+                "deletecollection",
+                "get",
+                "list",
+                "patch",
                 "update",
                 "watch"
             ],
@@ -32,34 +88,17 @@
             ]
         },
         {
-            "name": "networks",
-            "singularName": "network",
-            "namespaced": false,
-            "kind": "Network",
-            "verbs": [
-                "delete",
-                "deletecollection",
-                "get",
-                "list",
-                "patch",
-                "create",
-                "update",
-                "watch"
-            ],
-            "storageVersionHash": "gAEoywwmFz4="
-        },
-        {
             "name": "clusteroperators",
             "singularName": "clusteroperator",
             "namespaced": false,
             "kind": "ClusterOperator",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -80,27 +119,27 @@
             ]
         },
         {
-            "name": "oauths",
-            "singularName": "oauth",
+            "name": "clusterversions",
+            "singularName": "clusterversion",
             "namespaced": false,
-            "kind": "OAuth",
+            "kind": "ClusterVersion",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
-            "storageVersionHash": "4BZS3Rc6+4g="
+            "storageVersionHash": "jfyZTemckiE="
         },
         {
-            "name": "oauths/status",
+            "name": "clusterversions/status",
             "singularName": "",
             "namespaced": false,
-            "kind": "OAuth",
+            "kind": "ClusterVersion",
             "verbs": [
                 "get",
                 "patch",
@@ -113,12 +152,12 @@
             "namespaced": false,
             "kind": "Console",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -136,129 +175,17 @@
             ]
         },
         {
-            "name": "infrastructures",
-            "singularName": "infrastructure",
-            "namespaced": false,
-            "kind": "Infrastructure",
-            "verbs": [
-                "delete",
-                "deletecollection",
-                "get",
-                "list",
-                "patch",
-                "create",
-                "update",
-                "watch"
-            ],
-            "storageVersionHash": "s/S0qwLEaK4="
-        },
-        {
-            "name": "infrastructures/status",
-            "singularName": "",
-            "namespaced": false,
-            "kind": "Infrastructure",
-            "verbs": [
-                "get",
-                "patch",
-                "update"
-            ]
-        },
-        {
-            "name": "operatorhubs",
-            "singularName": "operatorhub",
-            "namespaced": false,
-            "kind": "OperatorHub",
-            "verbs": [
-                "delete",
-                "deletecollection",
-                "get",
-                "list",
-                "patch",
-                "create",
-                "update",
-                "watch"
-            ],
-            "storageVersionHash": "O7bQeZSTFtM="
-        },
-        {
-            "name": "operatorhubs/status",
-            "singularName": "",
-            "namespaced": false,
-            "kind": "OperatorHub",
-            "verbs": [
-                "get",
-                "patch",
-                "update"
-            ]
-        },
-        {
-            "name": "schedulers",
-            "singularName": "scheduler",
-            "namespaced": false,
-            "kind": "Scheduler",
-            "verbs": [
-                "delete",
-                "deletecollection",
-                "get",
-                "list",
-                "patch",
-                "create",
-                "update",
-                "watch"
-            ],
-            "storageVersionHash": "ptedUcY9aMg="
-        },
-        {
-            "name": "schedulers/status",
-            "singularName": "",
-            "namespaced": false,
-            "kind": "Scheduler",
-            "verbs": [
-                "get",
-                "patch",
-                "update"
-            ]
-        },
-        {
-            "name": "authentications",
-            "singularName": "authentication",
-            "namespaced": false,
-            "kind": "Authentication",
-            "verbs": [
-                "delete",
-                "deletecollection",
-                "get",
-                "list",
-                "patch",
-                "create",
-                "update",
-                "watch"
-            ],
-            "storageVersionHash": "GY8wWr8iSHA="
-        },
-        {
-            "name": "authentications/status",
-            "singularName": "",
-            "namespaced": false,
-            "kind": "Authentication",
-            "verbs": [
-                "get",
-                "patch",
-                "update"
-            ]
-        },
-        {
             "name": "dnses",
             "singularName": "dns",
             "namespaced": false,
             "kind": "DNS",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -281,12 +208,12 @@
             "namespaced": false,
             "kind": "FeatureGate",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -309,12 +236,12 @@
             "namespaced": false,
             "kind": "Image",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -332,27 +259,27 @@
             ]
         },
         {
-            "name": "apiservers",
-            "singularName": "apiserver",
+            "name": "infrastructures",
+            "singularName": "infrastructure",
             "namespaced": false,
-            "kind": "APIServer",
+            "kind": "Infrastructure",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
-            "storageVersionHash": "yr4VqIMvOkg="
+            "storageVersionHash": "s/S0qwLEaK4="
         },
         {
-            "name": "apiservers/status",
+            "name": "infrastructures/status",
             "singularName": "",
             "namespaced": false,
-            "kind": "APIServer",
+            "kind": "Infrastructure",
             "verbs": [
                 "get",
                 "patch",
@@ -365,12 +292,12 @@
             "namespaced": false,
             "kind": "Ingress",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -388,27 +315,100 @@
             ]
         },
         {
-            "name": "clusterversions",
-            "singularName": "clusterversion",
+            "name": "networks",
+            "singularName": "network",
             "namespaced": false,
-            "kind": "ClusterVersion",
+            "kind": "Network",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
-            "storageVersionHash": "jfyZTemckiE="
+            "storageVersionHash": "gAEoywwmFz4="
         },
         {
-            "name": "clusterversions/status",
+            "name": "oauths",
+            "singularName": "oauth",
+            "namespaced": false,
+            "kind": "OAuth",
+            "verbs": [
+                "create",
+                "delete",
+                "deletecollection",
+                "get",
+                "list",
+                "patch",
+                "update",
+                "watch"
+            ],
+            "storageVersionHash": "4BZS3Rc6+4g="
+        },
+        {
+            "name": "oauths/status",
             "singularName": "",
             "namespaced": false,
-            "kind": "ClusterVersion",
+            "kind": "OAuth",
+            "verbs": [
+                "get",
+                "patch",
+                "update"
+            ]
+        },
+        {
+            "name": "operatorhubs",
+            "singularName": "operatorhub",
+            "namespaced": false,
+            "kind": "OperatorHub",
+            "verbs": [
+                "create",
+                "delete",
+                "deletecollection",
+                "get",
+                "list",
+                "patch",
+                "update",
+                "watch"
+            ],
+            "storageVersionHash": "O7bQeZSTFtM="
+        },
+        {
+            "name": "operatorhubs/status",
+            "singularName": "",
+            "namespaced": false,
+            "kind": "OperatorHub",
+            "verbs": [
+                "get",
+                "patch",
+                "update"
+            ]
+        },
+        {
+            "name": "projects",
+            "singularName": "project",
+            "namespaced": false,
+            "kind": "Project",
+            "verbs": [
+                "create",
+                "delete",
+                "deletecollection",
+                "get",
+                "list",
+                "patch",
+                "update",
+                "watch"
+            ],
+            "storageVersionHash": "q4gdBJZsxYc="
+        },
+        {
+            "name": "projects/status",
+            "singularName": "",
+            "namespaced": false,
+            "kind": "Project",
             "verbs": [
                 "get",
                 "patch",
@@ -421,12 +421,12 @@
             "namespaced": false,
             "kind": "Proxy",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -444,27 +444,27 @@
             ]
         },
         {
-            "name": "projects",
-            "singularName": "project",
+            "name": "schedulers",
+            "singularName": "scheduler",
             "namespaced": false,
-            "kind": "Project",
+            "kind": "Scheduler",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
-            "storageVersionHash": "q4gdBJZsxYc="
+            "storageVersionHash": "ptedUcY9aMg="
         },
         {
-            "name": "projects/status",
+            "name": "schedulers/status",
             "singularName": "",
             "namespaced": false,
-            "kind": "Project",
+            "kind": "Scheduler",
             "verbs": [
                 "get",
                 "patch",

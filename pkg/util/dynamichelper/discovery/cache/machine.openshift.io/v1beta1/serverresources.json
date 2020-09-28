@@ -9,12 +9,12 @@
             "namespaced": true,
             "kind": "MachineHealthCheck",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
@@ -36,32 +36,49 @@
             ]
         },
         {
-            "name": "machinesets",
-            "singularName": "machineset",
+            "name": "machines",
+            "singularName": "machine",
             "namespaced": true,
-            "kind": "MachineSet",
+            "kind": "Machine",
             "verbs": [
+                "create",
                 "delete",
                 "deletecollection",
                 "get",
                 "list",
                 "patch",
-                "create",
                 "update",
                 "watch"
             ],
-            "storageVersionHash": "p7ZEIilFKZ0="
+            "storageVersionHash": "GLEf6/W/4xY="
         },
         {
-            "name": "machinesets/status",
+            "name": "machines/status",
             "singularName": "",
             "namespaced": true,
-            "kind": "MachineSet",
+            "kind": "Machine",
             "verbs": [
                 "get",
                 "patch",
                 "update"
             ]
+        },
+        {
+            "name": "machinesets",
+            "singularName": "machineset",
+            "namespaced": true,
+            "kind": "MachineSet",
+            "verbs": [
+                "create",
+                "delete",
+                "deletecollection",
+                "get",
+                "list",
+                "patch",
+                "update",
+                "watch"
+            ],
+            "storageVersionHash": "p7ZEIilFKZ0="
         },
         {
             "name": "machinesets/scale",
@@ -77,27 +94,10 @@
             ]
         },
         {
-            "name": "machines",
-            "singularName": "machine",
-            "namespaced": true,
-            "kind": "Machine",
-            "verbs": [
-                "delete",
-                "deletecollection",
-                "get",
-                "list",
-                "patch",
-                "create",
-                "update",
-                "watch"
-            ],
-            "storageVersionHash": "GLEf6/W/4xY="
-        },
-        {
-            "name": "machines/status",
+            "name": "machinesets/status",
             "singularName": "",
             "namespaced": true,
-            "kind": "Machine",
+            "kind": "MachineSet",
             "verbs": [
                 "get",
                 "patch",
