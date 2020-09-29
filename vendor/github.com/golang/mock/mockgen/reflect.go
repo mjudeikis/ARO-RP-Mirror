@@ -27,7 +27,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"text/template"
 
 	"github.com/golang/mock/mockgen/model"
@@ -117,7 +116,7 @@ func runInDir(program []byte, dir string) (*model.Package, error) {
 	cmdArgs := []string{}
 	cmdArgs = append(cmdArgs, "build")
 	if *buildFlags != "" {
-		cmdArgs = append(cmdArgs, strings.Split(*buildFlags, " ")...)
+		cmdArgs = append(cmdArgs, *buildFlags)
 	}
 	cmdArgs = append(cmdArgs, "-o", progBinary, progSource)
 
@@ -129,12 +128,10 @@ func runInDir(program []byte, dir string) (*model.Package, error) {
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}
-
 	return run(filepath.Join(tmpDir, progBinary))
 }
 
-// reflectMode generates mocks via reflection on an interface.
-func reflectMode(importPath string, symbols []string) (*model.Package, error) {
+func reflect(importPath string, symbols []string) (*model.Package, error) {
 	// TODO: sanity check arguments
 
 	if *execOnly != "" {
@@ -147,18 +144,11 @@ func reflectMode(importPath string, symbols []string) (*model.Package, error) {
 	}
 
 	if *progOnly {
-		if _, err := os.Stdout.Write(program); err != nil {
-			return nil, err
-		}
+		os.Stdout.Write(program)
 		os.Exit(0)
 	}
 
 	wd, _ := os.Getwd()
-
-	// Try to run the reflection program  in the current working directory.
-	if p, err := runInDir(program, wd); err == nil {
-		return p, nil
-	}
 
 	// Try to run the program in the same directory as the input package.
 	if p, err := build.Import(importPath, wd, build.FindOnly); err == nil {
@@ -168,7 +158,11 @@ func reflectMode(importPath string, symbols []string) (*model.Package, error) {
 		}
 	}
 
-	// Try to run it in a standard temp directory.
+	// Since that didn't work, try to run it in the current working directory.
+	if p, err := runInDir(program, wd); err == nil {
+		return p, nil
+	}
+	// Since that didn't work, try to run it in a standard temp directory.
 	return runInDir(program, "")
 }
 

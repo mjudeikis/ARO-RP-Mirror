@@ -26,7 +26,7 @@ func EnsureRemoveAll(dir string) error {
 
 	// track retries
 	exitOnErr := make(map[string]int)
-	maxRetry := 100
+	maxRetry := 5
 
 	// Attempt to unmount anything beneath this dir first
 	mount.RecursiveUnmount(dir)

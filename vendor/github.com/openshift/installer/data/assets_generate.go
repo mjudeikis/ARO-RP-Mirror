@@ -1,4 +1,4 @@
-// +build ignore
+// +build tools
 
 package main
 
@@ -12,7 +12,6 @@ import (
 func main() {
 	err := vfsgen.Generate(data.Assets, vfsgen.Options{
 		PackageName:  "data",
-		BuildTags:    "release",
 		VariableName: "Assets",
 	})
 	if err != nil {

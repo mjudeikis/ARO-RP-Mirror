@@ -1284,7 +1284,8 @@ func (c *IAM) CreateOpenIDConnectProviderRequest(input *CreateOpenIDConnectProvi
 //    * A list of client IDs (also known as audiences) that identify the application
 //    or applications that are allowed to authenticate using the OIDC provider
 //
-//    * A list of thumbprints of the server certificate(s) that the IdP uses
+//    * A list of thumbprints of one or more server certificates that the IdP
+//    uses
 //
 // You get all of this information from the OIDC IdP that you want to use to
 // access AWS.
@@ -5301,7 +5302,9 @@ func (c *IAM) GenerateServiceLastAccessedDetailsRequest(input *GenerateServiceLa
 //    * GetServiceLastAccessedDetails – Use this operation for users, groups,
 //    roles, or policies to list every AWS service that the resource could access
 //    using permissions policies. For each service, the response includes information
-//    about the most recent access attempt.
+//    about the most recent access attempt. The JobId returned by GenerateServiceLastAccessedDetail
+//    must be used by the same role within a session, or by the same user when
+//    used to call GetServiceLastAccessedDetail.
 //
 //    * GetServiceLastAccessedDetailsWithEntities – Use this operation for
 //    groups and policies to list information about the associated entities
@@ -5323,8 +5326,8 @@ func (c *IAM) GenerateServiceLastAccessedDetailsRequest(input *GenerateServiceLa
 // see Evaluating Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html#policy-eval-basics)
 // in the IAM User Guide.
 //
-// For more information about service last accessed data, see Reducing Policy
-// Scope by Viewing User Activity (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html)
+// For more information about service and action last accessed data, see Reducing
+// Permissions Using Service Last Accessed Data (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html)
 // in the IAM User Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -7406,6 +7409,15 @@ func (c *IAM) GetServiceLastAccessedDetailsRequest(input *GetServiceLastAccessed
 //    to attempt to access the service
 //
 // By default, the list is sorted by service namespace.
+//
+// If you specified ACTION_LEVEL granularity when you generated the report,
+// this operation returns service and action last accessed data. This includes
+// the most recent access attempt for each tracked action within a service.
+// Otherwise, this operation returns only service data.
+//
+// For more information about service and action last accessed data, see Reducing
+// Permissions Using Service Last Accessed Data (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html)
+// in the IAM User Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -12921,13 +12933,14 @@ func (c *IAM) SimulateCustomPolicyRequest(input *SimulateCustomPolicyInput) (req
 // The simulation does not perform the API operations; it only checks the authorization
 // to determine if the simulated policies allow or deny the operations.
 //
-// If you want to simulate existing policies attached to an IAM user, group,
-// or role, use SimulatePrincipalPolicy instead.
+// If you want to simulate existing policies that are attached to an IAM user,
+// group, or role, use SimulatePrincipalPolicy instead.
 //
-// Context keys are variables maintained by AWS and its services that provide
-// details about the context of an API query request. You can use the Condition
-// element of an IAM policy to evaluate context keys. To get the list of context
-// keys that the policies require for correct simulation, use GetContextKeysForCustomPolicy.
+// Context keys are variables that are maintained by AWS and its services and
+// which provide details about the context of an API query request. You can
+// use the Condition element of an IAM policy to evaluate context keys. To get
+// the list of context keys that the policies require for correct simulation,
+// use GetContextKeysForCustomPolicy.
 //
 // If the output is long, you can use MaxItems and Marker parameters to paginate
 // the results.
@@ -16339,7 +16352,7 @@ func (s ChangePasswordOutput) GoString() string {
 // evaluating the Condition elements of the input policies.
 //
 // This data type is used as an input parameter to SimulateCustomPolicy and
-// SimulatePrincipalPolicy .
+// SimulatePrincipalPolicy.
 type ContextEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -20088,12 +20101,24 @@ type EvaluationResult struct {
 	// EvalDecision is a required field
 	EvalDecision *string `type:"string" required:"true" enum:"PolicyEvaluationDecisionType"`
 
-	// Additional details about the results of the evaluation decision. When there
-	// are both IAM policies and resource policies, this parameter explains how
-	// each set of policies contributes to the final evaluation decision. When simulating
-	// cross-account access to a resource, both the resource-based policy and the
-	// caller's IAM policy must grant access. See How IAM Roles Differ from Resource-based
-	// Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_compare-resource-policies.html)
+	// Additional details about the results of the cross-account evaluation decision.
+	// This parameter is populated for only cross-account simulations. It contains
+	// a brief summary of how each policy type contributes to the final evaluation
+	// decision.
+	//
+	// If the simulation evaluates policies within the same account and includes
+	// a resource ARN, then the parameter is present but the response is empty.
+	// If the simulation evaluates policies within the same account and specifies
+	// all resources (*), then the parameter is not returned.
+	//
+	// When you make a cross-account request, AWS evaluates the request in the trusting
+	// account and the trusted account. The request is allowed only if both evaluations
+	// return true. For more information about how policies are evaluated, see Evaluating
+	// Policies Within a Single Account (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html#policy-eval-basics).
+	//
+	// If an AWS Organizations SCP included in the evaluation denies access, the
+	// simulation ends. In this case, policy evaluation does not proceed any further
+	// and this parameter is not returned.
 	EvalDecisionDetails map[string]*string `type:"map"`
 
 	// The ARN of the resource that the indicated API operation was tested on.
@@ -20119,6 +20144,10 @@ type EvaluationResult struct {
 	// affect the results of the simulation. Only applies if the simulated user's
 	// account is part of an organization.
 	OrganizationsDecisionDetail *OrganizationsDecisionDetail `type:"structure"`
+
+	// Contains information about the effect that a permissions boundary has on
+	// a policy simulation when the boundary is applied to an IAM entity.
+	PermissionsBoundaryDecisionDetail *PermissionsBoundaryDecisionDetail `type:"structure"`
 
 	// The individual results of the simulation of the API operation specified in
 	// EvalActionName on each resource.
@@ -20174,6 +20203,12 @@ func (s *EvaluationResult) SetMissingContextValues(v []*string) *EvaluationResul
 // SetOrganizationsDecisionDetail sets the OrganizationsDecisionDetail field's value.
 func (s *EvaluationResult) SetOrganizationsDecisionDetail(v *OrganizationsDecisionDetail) *EvaluationResult {
 	s.OrganizationsDecisionDetail = v
+	return s
+}
+
+// SetPermissionsBoundaryDecisionDetail sets the PermissionsBoundaryDecisionDetail field's value.
+func (s *EvaluationResult) SetPermissionsBoundaryDecisionDetail(v *PermissionsBoundaryDecisionDetail) *EvaluationResult {
+	s.PermissionsBoundaryDecisionDetail = v
 	return s
 }
 
@@ -20320,6 +20355,14 @@ type GenerateServiceLastAccessedDetailsInput struct {
 	//
 	// Arn is a required field
 	Arn *string `min:"20" type:"string" required:"true"`
+
+	// The level of detail that you want to generate. You can specify whether you
+	// want to generate information about the last attempt to access services or
+	// actions. If you specify service-level granularity, this operation generates
+	// only service data. If you specify action-level granularity, it generates
+	// service and action data. If you don't include this optional parameter, the
+	// operation generates service data.
+	Granularity *string `type:"string" enum:"AccessAdvisorUsageGranularityType"`
 }
 
 // String returns the string representation
@@ -20354,11 +20397,19 @@ func (s *GenerateServiceLastAccessedDetailsInput) SetArn(v string) *GenerateServ
 	return s
 }
 
+// SetGranularity sets the Granularity field's value.
+func (s *GenerateServiceLastAccessedDetailsInput) SetGranularity(v string) *GenerateServiceLastAccessedDetailsInput {
+	s.Granularity = &v
+	return s
+}
+
 type GenerateServiceLastAccessedDetailsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The job ID that you can use in the GetServiceLastAccessedDetails or GetServiceLastAccessedDetailsWithEntities
-	// operations.
+	// The JobId that you can use in the GetServiceLastAccessedDetails or GetServiceLastAccessedDetailsWithEntities
+	// operations. The JobId returned by GenerateServiceLastAccessedDetail must
+	// be used by the same role within a session, or by the same user when used
+	// to call GetServiceLastAccessedDetail.
 	JobId *string `min:"36" type:"string"`
 }
 
@@ -22221,7 +22272,9 @@ type GetServiceLastAccessedDetailsInput struct {
 	_ struct{} `type:"structure"`
 
 	// The ID of the request generated by the GenerateServiceLastAccessedDetails
-	// operation.
+	// operation. The JobId returned by GenerateServiceLastAccessedDetail must be
+	// used by the same role within a session, or by the same user when used to
+	// call GetServiceLastAccessedDetail.
 	//
 	// JobId is a required field
 	JobId *string `min:"36" type:"string" required:"true"`
@@ -22328,6 +22381,11 @@ type GetServiceLastAccessedDetailsOutput struct {
 	// JobStatus is a required field
 	JobStatus *string `type:"string" required:"true" enum:"JobStatusType"`
 
+	// The type of job. Service jobs return information about when each service
+	// was last accessed. Action jobs also include information about when tracked
+	// actions within the service were last accessed.
+	JobType *string `type:"string" enum:"AccessAdvisorUsageGranularityType"`
+
 	// When IsTruncated is true, this element is present and contains the value
 	// to use for the Marker parameter in a subsequent pagination request.
 	Marker *string `type:"string"`
@@ -22376,6 +22434,12 @@ func (s *GetServiceLastAccessedDetailsOutput) SetJobCreationDate(v time.Time) *G
 // SetJobStatus sets the JobStatus field's value.
 func (s *GetServiceLastAccessedDetailsOutput) SetJobStatus(v string) *GetServiceLastAccessedDetailsOutput {
 	s.JobStatus = &v
+	return s
+}
+
+// SetJobType sets the JobType field's value.
+func (s *GetServiceLastAccessedDetailsOutput) SetJobType(v string) *GetServiceLastAccessedDetailsOutput {
+	s.JobType = &v
 	return s
 }
 
@@ -27138,6 +27202,38 @@ func (s *PasswordPolicy) SetRequireUppercaseCharacters(v bool) *PasswordPolicy {
 	return s
 }
 
+// Contains information about the effect that a permissions boundary has on
+// a policy simulation when the boundary is applied to an IAM entity.
+type PermissionsBoundaryDecisionDetail struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether an action is allowed by a permissions boundary that is
+	// applied to an IAM entity (user or role). A value of true means that the permissions
+	// boundary does not deny the action. This means that the policy includes an
+	// Allow statement that matches the request. In this case, if an identity-based
+	// policy also allows the action, the request is allowed. A value of false means
+	// that either the requested action is not allowed (implicitly denied) or that
+	// the action is explicitly denied by the permissions boundary. In both of these
+	// cases, the action is not allowed, regardless of the identity-based policy.
+	AllowedByPermissionsBoundary *bool `type:"boolean"`
+}
+
+// String returns the string representation
+func (s PermissionsBoundaryDecisionDetail) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PermissionsBoundaryDecisionDetail) GoString() string {
+	return s.String()
+}
+
+// SetAllowedByPermissionsBoundary sets the AllowedByPermissionsBoundary field's value.
+func (s *PermissionsBoundaryDecisionDetail) SetAllowedByPermissionsBoundary(v bool) *PermissionsBoundaryDecisionDetail {
+	s.AllowedByPermissionsBoundary = &v
+	return s
+}
+
 // Contains information about a managed policy.
 //
 // This data type is used as a response element in the CreatePolicy, GetPolicy,
@@ -28465,11 +28561,10 @@ func (s *ResetServiceSpecificCredentialOutput) SetServiceSpecificCredential(v *S
 type ResourceSpecificResult struct {
 	_ struct{} `type:"structure"`
 
-	// Additional details about the results of the evaluation decision. When there
-	// are both IAM policies and resource policies, this parameter explains how
-	// each set of policies contributes to the final evaluation decision. When simulating
-	// cross-account access to a resource, both the resource-based policy and the
-	// caller's IAM policy must grant access.
+	// Additional details about the results of the evaluation decision on a single
+	// resource. This parameter is returned only for cross-account simulations.
+	// This parameter explains how each policy type contributes to the resource-specific
+	// evaluation decision.
 	EvalDecisionDetails map[string]*string `type:"map"`
 
 	// The result of the simulation of the simulated API operation on the resource
@@ -28499,6 +28594,10 @@ type ResourceSpecificResult struct {
 	// the context keys used by a set of policies, you can call GetContextKeysForCustomPolicy
 	// or GetContextKeysForPrincipalPolicy.
 	MissingContextValues []*string `type:"list"`
+
+	// Contains information about the effect that a permissions boundary has on
+	// a policy simulation when that boundary is applied to an IAM entity.
+	PermissionsBoundaryDecisionDetail *PermissionsBoundaryDecisionDetail `type:"structure"`
 }
 
 // String returns the string representation
@@ -28538,6 +28637,12 @@ func (s *ResourceSpecificResult) SetMatchedStatements(v []*Statement) *ResourceS
 // SetMissingContextValues sets the MissingContextValues field's value.
 func (s *ResourceSpecificResult) SetMissingContextValues(v []*string) *ResourceSpecificResult {
 	s.MissingContextValues = v
+	return s
+}
+
+// SetPermissionsBoundaryDecisionDetail sets the PermissionsBoundaryDecisionDetail field's value.
+func (s *ResourceSpecificResult) SetPermissionsBoundaryDecisionDetail(v *PermissionsBoundaryDecisionDetail) *ResourceSpecificResult {
+	s.PermissionsBoundaryDecisionDetail = v
 	return s
 }
 
@@ -29391,6 +29496,13 @@ type ServiceLastAccessed struct {
 	// the reporting period (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html#service-last-accessed-reporting-period).
 	LastAuthenticatedEntity *string `min:"20" type:"string"`
 
+	// The Region from which the authenticated entity (user or role) last attempted
+	// to access the service. AWS does not report unauthenticated requests.
+	//
+	// This field is null if no IAM entities attempted to access the service within
+	// the reporting period (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html#service-last-accessed-reporting-period).
+	LastAuthenticatedRegion *string `type:"string"`
+
 	// The name of the service in which access was attempted.
 	//
 	// ServiceName is a required field
@@ -29415,6 +29527,16 @@ type ServiceLastAccessed struct {
 	// This field is null if no principals attempted to access the service within
 	// the reporting period (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html#service-last-accessed-reporting-period).
 	TotalAuthenticatedEntities *int64 `type:"integer"`
+
+	// An object that contains details about the most recent attempt to access a
+	// tracked action within the service.
+	//
+	// This field is null if there no tracked actions or if the principal did not
+	// use the tracked actions within the reporting period (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html#service-last-accessed-reporting-period).
+	// This field is also null if the report was generated at the service level
+	// and not the action level. For more information, see the Granularity field
+	// in GenerateServiceLastAccessedDetails.
+	TrackedActionsLastAccessed []*TrackedActionLastAccessed `type:"list"`
 }
 
 // String returns the string representation
@@ -29439,6 +29561,12 @@ func (s *ServiceLastAccessed) SetLastAuthenticatedEntity(v string) *ServiceLastA
 	return s
 }
 
+// SetLastAuthenticatedRegion sets the LastAuthenticatedRegion field's value.
+func (s *ServiceLastAccessed) SetLastAuthenticatedRegion(v string) *ServiceLastAccessed {
+	s.LastAuthenticatedRegion = &v
+	return s
+}
+
 // SetServiceName sets the ServiceName field's value.
 func (s *ServiceLastAccessed) SetServiceName(v string) *ServiceLastAccessed {
 	s.ServiceName = &v
@@ -29454,6 +29582,12 @@ func (s *ServiceLastAccessed) SetServiceNamespace(v string) *ServiceLastAccessed
 // SetTotalAuthenticatedEntities sets the TotalAuthenticatedEntities field's value.
 func (s *ServiceLastAccessed) SetTotalAuthenticatedEntities(v int64) *ServiceLastAccessed {
 	s.TotalAuthenticatedEntities = &v
+	return s
+}
+
+// SetTrackedActionsLastAccessed sets the TrackedActionsLastAccessed field's value.
+func (s *ServiceLastAccessed) SetTrackedActionsLastAccessed(v []*TrackedActionLastAccessed) *ServiceLastAccessed {
+	s.TrackedActionsLastAccessed = v
 	return s
 }
 
@@ -29888,6 +30022,27 @@ type SimulateCustomPolicyInput struct {
 	// service where to continue from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
+	// The IAM permissions boundary policy to simulate. The permissions boundary
+	// sets the maximum permissions that an IAM entity can have. You can input only
+	// one permissions boundary when you pass a policy to this operation. For more
+	// information about permissions boundaries, see Permissions Boundaries for
+	// IAM Entities (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)
+	// in the IAM User Guide. The policy input is specified as a string that contains
+	// the complete, valid JSON text of a permissions boundary policy.
+	//
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of the following:
+	//
+	//    * Any printable ASCII character ranging from the space character (\u0020)
+	//    through the end of the ASCII character range
+	//
+	//    * The printable characters in the Basic Latin and Latin-1 Supplement character
+	//    set (through \u00FF)
+	//
+	//    * The special characters tab (\u0009), line feed (\u000A), and carriage
+	//    return (\u000D)
+	PermissionsBoundaryPolicyInputList []*string `type:"list"`
+
 	// A list of policy documents to include in the simulation. Each document is
 	// specified as a string containing the complete, valid JSON text of an IAM
 	// policy. Do not include any resource-based policies in this parameter. Any
@@ -30079,6 +30234,12 @@ func (s *SimulateCustomPolicyInput) SetMaxItems(v int64) *SimulateCustomPolicyIn
 	return s
 }
 
+// SetPermissionsBoundaryPolicyInputList sets the PermissionsBoundaryPolicyInputList field's value.
+func (s *SimulateCustomPolicyInput) SetPermissionsBoundaryPolicyInputList(v []*string) *SimulateCustomPolicyInput {
+	s.PermissionsBoundaryPolicyInputList = v
+	return s
+}
+
 // SetPolicyInputList sets the PolicyInputList field's value.
 func (s *SimulateCustomPolicyInput) SetPolicyInputList(v []*string) *SimulateCustomPolicyInput {
 	s.PolicyInputList = v
@@ -30209,6 +30370,30 @@ type SimulatePrincipalPolicyInput struct {
 	// Marker contains a value to include in the subsequent call that tells the
 	// service where to continue from.
 	MaxItems *int64 `min:"1" type:"integer"`
+
+	// The IAM permissions boundary policy to simulate. The permissions boundary
+	// sets the maximum permissions that the entity can have. You can input only
+	// one permissions boundary when you pass a policy to this operation. An IAM
+	// entity can only have one permissions boundary in effect at a time. For example,
+	// if a permissions boundary is attached to an entity and you pass in a different
+	// permissions boundary policy using this parameter, then the new permissions
+	// boundary policy is used for the simulation. For more information about permissions
+	// boundaries, see Permissions Boundaries for IAM Entities (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)
+	// in the IAM User Guide. The policy input is specified as a string containing
+	// the complete, valid JSON text of a permissions boundary policy.
+	//
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of the following:
+	//
+	//    * Any printable ASCII character ranging from the space character (\u0020)
+	//    through the end of the ASCII character range
+	//
+	//    * The printable characters in the Basic Latin and Latin-1 Supplement character
+	//    set (through \u00FF)
+	//
+	//    * The special characters tab (\u0009), line feed (\u000A), and carriage
+	//    return (\u000D)
+	PermissionsBoundaryPolicyInputList []*string `type:"list"`
 
 	// An optional list of additional policy documents to include in the simulation.
 	// Each document is specified as a string containing the complete, valid JSON
@@ -30399,6 +30584,12 @@ func (s *SimulatePrincipalPolicyInput) SetMarker(v string) *SimulatePrincipalPol
 // SetMaxItems sets the MaxItems field's value.
 func (s *SimulatePrincipalPolicyInput) SetMaxItems(v int64) *SimulatePrincipalPolicyInput {
 	s.MaxItems = &v
+	return s
+}
+
+// SetPermissionsBoundaryPolicyInputList sets the PermissionsBoundaryPolicyInputList field's value.
+func (s *SimulatePrincipalPolicyInput) SetPermissionsBoundaryPolicyInputList(v []*string) *SimulatePrincipalPolicyInput {
+	s.PermissionsBoundaryPolicyInputList = v
 	return s
 }
 
@@ -30727,6 +30918,75 @@ func (s TagUserOutput) String() string {
 // GoString returns the string representation
 func (s TagUserOutput) GoString() string {
 	return s.String()
+}
+
+// Contains details about the most recent attempt to access an action within
+// the service.
+//
+// This data type is used as a response element in the GetServiceLastAccessedDetails
+// operation.
+type TrackedActionLastAccessed struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the tracked action to which access was attempted. Tracked actions
+	// are actions that report activity to IAM.
+	ActionName *string `type:"string"`
+
+	// The Amazon Resource Name (ARN). ARNs are unique identifiers for AWS resources.
+	//
+	// For more information about ARNs, go to Amazon Resource Names (ARNs) and AWS
+	// Service Namespaces (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html)
+	// in the AWS General Reference.
+	LastAccessedEntity *string `min:"20" type:"string"`
+
+	// The Region from which the authenticated entity (user or role) last attempted
+	// to access the tracked action. AWS does not report unauthenticated requests.
+	//
+	// This field is null if no IAM entities attempted to access the service within
+	// the reporting period (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html#service-last-accessed-reporting-period).
+	LastAccessedRegion *string `type:"string"`
+
+	// The date and time, in ISO 8601 date-time format (http://www.iso.org/iso/iso8601),
+	// when an authenticated entity most recently attempted to access the tracked
+	// service. AWS does not report unauthenticated requests.
+	//
+	// This field is null if no IAM entities attempted to access the service within
+	// the reporting period (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor.html#service-last-accessed-reporting-period).
+	LastAccessedTime *time.Time `type:"timestamp"`
+}
+
+// String returns the string representation
+func (s TrackedActionLastAccessed) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TrackedActionLastAccessed) GoString() string {
+	return s.String()
+}
+
+// SetActionName sets the ActionName field's value.
+func (s *TrackedActionLastAccessed) SetActionName(v string) *TrackedActionLastAccessed {
+	s.ActionName = &v
+	return s
+}
+
+// SetLastAccessedEntity sets the LastAccessedEntity field's value.
+func (s *TrackedActionLastAccessed) SetLastAccessedEntity(v string) *TrackedActionLastAccessed {
+	s.LastAccessedEntity = &v
+	return s
+}
+
+// SetLastAccessedRegion sets the LastAccessedRegion field's value.
+func (s *TrackedActionLastAccessed) SetLastAccessedRegion(v string) *TrackedActionLastAccessed {
+	s.LastAccessedRegion = &v
+	return s
+}
+
+// SetLastAccessedTime sets the LastAccessedTime field's value.
+func (s *TrackedActionLastAccessed) SetLastAccessedTime(v time.Time) *TrackedActionLastAccessed {
+	s.LastAccessedTime = &v
+	return s
 }
 
 type UntagRoleInput struct {
@@ -32937,6 +33197,14 @@ func (s *VirtualMFADevice) SetUser(v *User) *VirtualMFADevice {
 	s.User = v
 	return s
 }
+
+const (
+	// AccessAdvisorUsageGranularityTypeServiceLevel is a AccessAdvisorUsageGranularityType enum value
+	AccessAdvisorUsageGranularityTypeServiceLevel = "SERVICE_LEVEL"
+
+	// AccessAdvisorUsageGranularityTypeActionLevel is a AccessAdvisorUsageGranularityType enum value
+	AccessAdvisorUsageGranularityTypeActionLevel = "ACTION_LEVEL"
+)
 
 const (
 	// AssignmentStatusTypeAssigned is a AssignmentStatusType enum value
