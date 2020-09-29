@@ -2,7 +2,6 @@ package clientconfig
 
 import (
 	"fmt"
-	"net/http"
 	"reflect"
 	"strings"
 
@@ -61,10 +60,6 @@ type ClientOpts struct {
 	// EndpointType specifies whether to use the public, internal, or
 	// admin endpoint of a service.
 	EndpointType string
-
-	// HTTPClient provides the ability customize the ProviderClient's
-	// internal HTTP client.
-	HTTPClient *http.Client
 
 	// YAMLOpts provides the ability to pass a customized set
 	// of options and methods for loading the YAML file.
@@ -738,11 +733,6 @@ func NewServiceClient(service string, opts *ClientOpts) (*gophercloud.ServiceCli
 	pClient, err := AuthenticatedClient(opts)
 	if err != nil {
 		return nil, err
-	}
-
-	// If an HTTPClient was specified, use it.
-	if opts.HTTPClient != nil {
-		pClient.HTTPClient = *opts.HTTPClient
 	}
 
 	// Determine the region to use.

@@ -3,6 +3,7 @@ COMMIT = $(shell git rev-parse --short HEAD)$(shell [[ $$(git status --porcelain
 ARO_IMAGE ?= ${RP_IMAGE_ACR}.azurecr.io/aro:$(COMMIT)
 
 export CGO_CFLAGS=-Dgpgme_off_t=off_t
+export GOFLAGS=-mod=vendor  # can remove when everyone is on go>=1.14
 
 aro: generate
 	go build -ldflags "-X github.com/Azure/ARO-RP/pkg/util/version.GitCommit=$(COMMIT)" ./cmd/aro
@@ -113,4 +114,8 @@ test-python: generate pyenv az
 admin.kubeconfig:
 	hack/get-admin-kubeconfig.sh /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${RESOURCEGROUP}/providers/Microsoft.RedHatOpenShift/openShiftClusters/${CLUSTER} >admin.kubeconfig
 
-.PHONY: admin.kubeconfig aro az clean client generate image-aro image-fluentbit image-proxy image-routefix proxy publish-image-aro publish-image-fluentbit publish-image-proxy publish-image-routefix secrets secrets-update e2e.test test-e2e test-go test-python
+vendor:
+	go mod tidy
+	go mod vendor
+
+.PHONY: admin.kubeconfig aro az clean client generate image-aro image-fluentbit image-proxy image-routefix proxy publish-image-aro publish-image-fluentbit publish-image-proxy publish-image-routefix secrets secrets-update e2e.test test-e2e test-go test-python vendor

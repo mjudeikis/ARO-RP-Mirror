@@ -6,8 +6,8 @@ package checker
 import (
 	"time"
 
-	machinev1beta1 "github.com/openshift/cluster-api/pkg/apis/machine/v1beta1"
-	clusterapi "github.com/openshift/cluster-api/pkg/client/clientset_generated/clientset"
+	machinev1beta1 "github.com/openshift/machine-api-operator/pkg/apis/machine/v1beta1"
+	clusterapi "github.com/openshift/machine-api-operator/pkg/generated/clientset/versioned"
 	"github.com/sirupsen/logrus"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
