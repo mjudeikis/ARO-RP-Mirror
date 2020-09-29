@@ -23,6 +23,7 @@ import (
 	"sync"
 
 	"golang.org/x/tools/go/gcexportdata"
+	"golang.org/x/tools/internal/gocommand"
 	"golang.org/x/tools/internal/packagesinternal"
 )
 
@@ -34,6 +35,9 @@ import (
 // ID and Errors (if present) will always be filled.
 // Load may return more information than requested.
 type LoadMode int
+
+// TODO(matloob): When a V2 of go/packages is released, rename NeedExportsFile to
+// NeedExportFile to make it consistent with the Package field it's adding.
 
 const (
 	// NeedName adds Name and PkgPath.
@@ -52,7 +56,7 @@ const (
 	// NeedDeps adds the fields requested by the LoadMode in the packages in Imports.
 	NeedDeps
 
-	// NeedExportsFile adds ExportsFile.
+	// NeedExportsFile adds ExportFile.
 	NeedExportsFile
 
 	// NeedTypes adds Types, Fset, and IllTyped.
@@ -123,6 +127,9 @@ type Config struct {
 	//	opt.Env = append(os.Environ(), "GOOS=plan9", "GOARCH=386")
 	//
 	Env []string
+
+	// gocmdRunner guards go command calls from concurrency errors.
+	gocmdRunner *gocommand.Runner
 
 	// BuildFlags is a list of command-line flags to be passed through to
 	// the build system's query tool.
@@ -296,11 +303,23 @@ type Package struct {
 
 	// forTest is the package under test, if any.
 	forTest string
+
+	// module is the module information for the package if it exists.
+	module *packagesinternal.Module
 }
 
 func init() {
 	packagesinternal.GetForTest = func(p interface{}) string {
 		return p.(*Package).forTest
+	}
+	packagesinternal.GetModule = func(p interface{}) *packagesinternal.Module {
+		return p.(*Package).module
+	}
+	packagesinternal.GetGoCmdRunner = func(config interface{}) *gocommand.Runner {
+		return config.(*Config).gocmdRunner
+	}
+	packagesinternal.SetGoCmdRunner = func(config interface{}, runner *gocommand.Runner) {
+		config.(*Config).gocmdRunner = runner
 	}
 }
 
@@ -463,6 +482,9 @@ func newLoader(cfg *Config) *loader {
 	}
 	if ld.Config.Env == nil {
 		ld.Config.Env = os.Environ()
+	}
+	if ld.Config.gocmdRunner == nil {
+		ld.Config.gocmdRunner = &gocommand.Runner{}
 	}
 	if ld.Context == nil {
 		ld.Context = context.Background()
