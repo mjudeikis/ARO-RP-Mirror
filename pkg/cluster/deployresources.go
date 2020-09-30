@@ -52,22 +52,19 @@ func (m *manager) deployResourceTemplate(ctx context.Context) error {
 			},
 		},
 		Resources: []*arm.Resource{
-			dnsPrivateZone(installConfig),
-			dnsPrivateRecordAPIINT(infraID, installConfig),
-			dnsPrivateRecordAPI(infraID, installConfig),
-			dnsEtcdSRVRecord(installConfig),
-			dnsEtcdRecords(infraID, installConfig),
-			dnsVirtualNetworkLink(vnetID, installConfig),
-			networkPrivateLinkService(infraID, m.env.SubscriptionID(), m.doc.OpenShiftCluster, installConfig),
-			networkPublicIPAddress(infraID, installConfig),
-			networkPublicIPAddressOutbound(infraID, installConfig),
-			networkAPIServerPublicLoadBalancer(infraID, m.doc.OpenShiftCluster, installConfig),
-			networkInternalLoadBalancer(infraID, m.doc.OpenShiftCluster, installConfig),
-			networkPublicLoadBalancer(infraID, m.doc.OpenShiftCluster, installConfig),
-			networkBootstrapNIC(infraID, m.doc.OpenShiftCluster, installConfig),
-			networkMasterNICs(infraID, m.doc.OpenShiftCluster, installConfig),
-			computeBoostrapVM(infraID, m.doc.OpenShiftCluster, installConfig),
-			computeMasterVMs(infraID, zones, machineMaster, m.doc.OpenShiftCluster, installConfig),
+			dnsPrivateZone(installConfig),                                                                     // upstream
+			dnsPrivateRecordAPIINT(infraID, installConfig),                                                    // upstream
+			dnsPrivateRecordAPI(infraID, installConfig),                                                       // upstream
+			dnsVirtualNetworkLink(vnetID, installConfig),                                                      // aro
+			networkPrivateLinkService(infraID, m.env.SubscriptionID(), m.doc.OpenShiftCluster, installConfig), // aro
+			networkPublicIPAddress(infraID, installConfig),                                                    // upstream
+			networkPublicIPAddressOutbound(infraID, installConfig),                                            // aro
+			networkInternalLoadBalancer(infraID, m.doc.OpenShiftCluster, installConfig),                       // upstream
+			networkPublicLoadBalancer(infraID, m.doc.OpenShiftCluster, installConfig),                         // upstream
+			networkBootstrapNIC(infraID, m.doc.OpenShiftCluster, installConfig),                               // upstream
+			networkMasterNICs(infraID, m.doc.OpenShiftCluster, installConfig),                                 // upstream
+			computeBoostrapVM(infraID, m.doc.OpenShiftCluster, installConfig),                                 // upstream
+			computeMasterVMs(infraID, zones, machineMaster, m.doc.OpenShiftCluster, installConfig),            // upstream
 		},
 	}
 	return m.deployARMTemplate(ctx, resourceGroup, "resources", t, map[string]interface{}{
