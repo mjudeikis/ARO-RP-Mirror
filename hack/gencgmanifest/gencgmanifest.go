@@ -6,26 +6,18 @@ package main
 // Licensed under the Apache License 2.0.
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
-
-	"github.com/BurntSushi/toml"
 )
 
 var (
 	outputFile = flag.String("o", "", "output file")
 )
-
-type lock struct {
-	Projects []*struct {
-		Name     string
-		Packages []string
-		Revision string
-	}
-}
 
 type cgmanifest struct {
 	Registrations []*registration `json:"registration,omitempty"`
@@ -37,42 +29,48 @@ type registration struct {
 }
 
 type typedComponent struct {
-	Type string        `json:"type,omitempty"`
-	Git  *gitComponent `json:"git,omitempty"`
+	Type string       `json:"type,omitempty"`
+	Go   *goComponent `json:"go,omitempty"`
 }
 
-type gitComponent struct {
-	CommitHash    string `json:"commitHash,omitempty"`
-	RepositoryURL string `json:"repositoryUrl,omitempty"`
+type goComponent struct {
+	Version string `json:"version,omitempty"`
+	Name    string `json:"name,omitempty"`
 }
 
 func run() error {
-	var lock lock
-
-	_, err := toml.DecodeFile("../../Gopkg.lock", &lock)
+	file, err := os.Open("../../go.sum")
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
+	deps := []goComponent{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		parts := strings.Split(scanner.Text(), " ")
+		deps = append(deps, goComponent{
+			Name:    parts[0],
+			Version: strings.Split(parts[1], "/")[0], //vX.Y.Z/go.mod to vX.Y.Z
+		})
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	deps = unique(deps)
 	cgmanifest := &cgmanifest{
-		Registrations: make([]*registration, 0, len(lock.Projects)),
+		Registrations: make([]*registration, 0, len(deps)),
 		Version:       1,
 	}
 
-	for _, project := range lock.Projects {
-		switch {
-		case strings.HasPrefix(project.Name, "k8s.io/"):
-			project.Name = strings.Replace(project.Name, "k8s.io", "github.com/kubernetes", 1)
-		case strings.HasPrefix(project.Name, "cloud.google.com/") && len(project.Packages) > 0:
-			project.Name += "/" + project.Packages[0]
-		}
-
+	for _, dep := range deps {
 		cgmanifest.Registrations = append(cgmanifest.Registrations, &registration{
 			Component: &typedComponent{
-				Type: "git",
-				Git: &gitComponent{
-					CommitHash:    project.Revision,
-					RepositoryURL: "https://" + project.Name + "/",
+				Type: "go",
+				Go: &goComponent{
+					Name:    dep.Name,
+					Version: dep.Version,
 				},
 			},
 		})
@@ -91,6 +89,18 @@ func run() error {
 	}
 
 	return err
+}
+
+func unique(input []goComponent) []goComponent {
+	keys := make(map[string]bool)
+	output := []goComponent{}
+	for _, entry := range input {
+		if _, value := keys[entry.Version]; !value {
+			keys[entry.Version] = true
+			output = append(output, entry)
+		}
+	}
+	return output
 }
 
 func main() {
