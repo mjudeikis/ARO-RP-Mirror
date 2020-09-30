@@ -9,8 +9,7 @@ upstream OCP.
 * CARRY: HACK: remove dependency on github.com/openshift/installer/pkg/terraform
   from pkg/asset/cluster
 
-  This enables dep to import the installer as a library as well as significantly
-  decreasing compilation time and binary footprint.
+  This enables to use installer as a library.
 
 * CARRY: PARTIAL: allow platform credentials to be prepopulated in
   installconfig.PlatformCreds
@@ -36,33 +35,20 @@ upstream OCP.
   In ARO, the public DNS zone is maintained by the service and the cluster
   operator does not have permissions to modify it.
 
-* CARRY: HACK: disable CloudProviderRateLimit
-
-  Enabling CloudProviderRateLimit seems to get us into serious problems with the
-  LoadBalancer reconciliation logic.
-
 * CARRY: allow VM image to be overriden
 
   This commit enables ARO to use platform-published VM images.
-
-* CARRY: HACK: insert worker VMs into aro load balancer backend
-
-  This ensures that worker VMs are always in the aro load balancer backend, and
-  are thus always eligible for the associated outbound rule, and thus should
-  have internet access.  As a result a fake inbound service is not necessary.
 
 * CARRY: HACK: don't require BaseDomainResourceGroupName on ARO
 
   This prevents a validating failure when omitting a configurable which is never
   used in ARO.
 
-* CARRY: HACK: create openshift-apiserver namespace very early
+* CARRY: HACK: Vendor kube-1.18.3. Update MCO dependencies and fixup code
 
-  Work around for https://bugzilla.redhat.com/show_bug.cgi?id=1825355
+  This enables ARO code to be on kube-1.18.3 libraries, instead of 1.17.
 
-* CARRY: use the correct public key for certificate SubjectKeyId
-
-  Work around for https://bugzilla.redhat.com/show_bug.cgi?id=1831760
+* CARRY: HACK: Commit /data/assets in the installer so it can be used as a library
 
 ## Installation differences
 
