@@ -36,7 +36,7 @@ func (m *manager) AdminUpgrade(ctx context.Context) error {
 		steps.Action(m.fixPullSecret),       // TODO(mj): Remove when operator deployed
 		steps.Action(m.ensureRouteFix),
 		steps.Action(m.ensureAROOperator),
-		steps.Condition(m.aroDeploymentReady, 10*time.Minute),
+		steps.Condition(m.aroDeploymentReady, 20*time.Minute),
 		steps.Action(m.upgradeCertificates),
 		steps.Action(m.configureAPIServerCertificate),
 		steps.Action(m.configureIngressCertificate),
@@ -74,9 +74,9 @@ func (m *manager) Install(ctx context.Context, installConfig *installconfig.Inst
 			steps.Condition(m.apiServersReady, 30*time.Minute),
 			steps.Condition(m.operatorConsoleExists, 30*time.Minute),
 			steps.Action(m.updateConsoleBranding),
-			steps.Condition(m.operatorConsoleReady, 10*time.Minute),
+			steps.Condition(m.operatorConsoleReady, 20*time.Minute),
 			steps.Condition(m.clusterVersionReady, 30*time.Minute),
-			steps.Condition(m.aroDeploymentReady, 10*time.Minute),
+			steps.Condition(m.aroDeploymentReady, 20*time.Minute),
 			steps.Action(m.disableUpdates),
 			steps.Action(m.disableSamples),
 			steps.Action(m.disableOperatorHubSources),
@@ -85,6 +85,7 @@ func (m *manager) Install(ctx context.Context, installConfig *installconfig.Inst
 			steps.Condition(m.ingressControllerReady, 30*time.Minute),
 			steps.Action(m.finishInstallation),
 			steps.Action(m.addResourceProviderVersion),
+			steps.Action(m.addArchitectureVersion),
 		},
 	}
 
@@ -185,6 +186,17 @@ func (m *manager) addResourceProviderVersion(ctx context.Context) error {
 	var err error
 	m.doc, err = m.db.PatchWithLease(ctx, m.doc.Key, func(doc *api.OpenShiftClusterDocument) error {
 		doc.OpenShiftCluster.Properties.ProvisionedBy = version.GitCommit
+		return nil
+	})
+	return err
+}
+
+// addArchitectureVersion sets the architecture version in
+// the cluster document for tracking changes in production
+func (i *manager) addArchitectureVersion(ctx context.Context) error {
+	var err error
+	i.doc, err = i.db.PatchWithLease(ctx, i.doc.Key, func(doc *api.OpenShiftClusterDocument) error {
+		doc.OpenShiftCluster.Properties.ArchitectureVersion = version.ArchitectureVersion
 		return nil
 	})
 	return err

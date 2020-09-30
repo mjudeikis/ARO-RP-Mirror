@@ -84,11 +84,34 @@ func NetworkSecurityGroupID(oc *api.OpenShiftCluster, subnetID string) (string, 
 		infraID = "aro"
 	}
 
+	switch oc.Properties.ArchitectureVersion {
+	case api.ArchitectureVersionV1:
+		return networkSecurityGroupIDv1(oc, subnetID, infraID)
+	case api.ArchitectureVersionV2:
+		return networkSecurityGroupIDv2(oc, subnetID, infraID)
+	default:
+		return "", fmt.Errorf("unknown architecture version %q", oc.Properties.ArchitectureVersion)
+	}
+
+}
+
+func networkSecurityGroupIDv1(oc *api.OpenShiftCluster, subnetID, infraID string) (string, error) {
 	switch {
 	case strings.EqualFold(subnetID, oc.Properties.MasterProfile.SubnetID):
-		return oc.Properties.ClusterProfile.ResourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/" + infraID + NSGControlPlaneSuffix, nil
+		return oc.Properties.ClusterProfile.ResourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/" + infraID + NSGControlPlaneSuffixv1, nil
 	case strings.EqualFold(subnetID, oc.Properties.WorkerProfiles[0].SubnetID):
-		return oc.Properties.ClusterProfile.ResourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/" + infraID + NSGNodeSuffix, nil
+		return oc.Properties.ClusterProfile.ResourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/" + infraID + NSGNodeSuffixv1, nil
+	default:
+		return "", fmt.Errorf("unknown subnetID %q", subnetID)
+	}
+}
+
+func networkSecurityGroupIDv2(oc *api.OpenShiftCluster, subnetID, infraID string) (string, error) {
+	switch {
+	case strings.EqualFold(subnetID, oc.Properties.MasterProfile.SubnetID):
+		return oc.Properties.ClusterProfile.ResourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/" + infraID + NSGSuffixv2, nil
+	case strings.EqualFold(subnetID, oc.Properties.WorkerProfiles[0].SubnetID):
+		return oc.Properties.ClusterProfile.ResourceGroupID + "/providers/Microsoft.Network/networkSecurityGroups/" + infraID + NSGSuffixv2, nil
 	default:
 		return "", fmt.Errorf("unknown subnetID %q", subnetID)
 	}
