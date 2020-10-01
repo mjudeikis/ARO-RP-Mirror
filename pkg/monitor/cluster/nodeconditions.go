@@ -27,6 +27,22 @@ func (mon *Monitor) emitNodeConditions(ctx context.Context) error {
 
 	for _, n := range ns.Items {
 		for _, c := range n.Status.Conditions {
+			// emit always nodeReady metric
+			if c.Type == V1.NodeReady {
+				if c.Status == v1.ConditionTrue {
+					mon.emitGauge("node.ready", 1, map[string]string{
+						"name":   n.Name,
+						"status": string(c.Status),
+					})
+				} else {
+					mon.emitGauge("node.ready", 0, map[string]string{
+						"name":   n.Name,
+						"status": string(c.Status),
+					})
+				}
+			}
+
+			// emit only when not healthy
 			if c.Status == nodeConditionsExpected[c.Type] {
 				continue
 			}

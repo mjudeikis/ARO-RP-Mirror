@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+// emitAPIServerHealthzCode emits API server /healthz endpoint status code
+// as metric dimension
 func (mon *Monitor) emitAPIServerHealthzCode() (int, error) {
 	var statusCode int
 	err := mon.cli.Discovery().RESTClient().
