@@ -114,6 +114,15 @@ run_e2e() {
     CLUSTER_SPN_ID=$(cat $CLUSTERSPN | jq -r .appId)
     CLUSTER_SPN_SECRET=$(cat $CLUSTERSPN | jq -r .password)
 
+    #TODO(mj): Remove once we get rid of python deps
+    grep -q 'dev_sources' ~/.azure/config || cat >> ~/.azure/config <<EOF
+[extension]
+dev_sources = ${PWD}/python
+EOF
+
+    az -v
+    az extension lis
+
     echo "########## 🚀 Create ARO Cluster $CLUSTER - Using client-id : $CLUSTER_SPN_ID ##########"
 
     az aro create \
