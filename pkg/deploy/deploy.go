@@ -40,9 +40,12 @@ type Deployer interface {
 type deployer struct {
 	log *logrus.Entry
 
-	globaldeployments      features.DeploymentsClient
-	globalgroups           features.ResourceGroupsClient
-	globalrecordsets       dns.RecordSetsClient
+	// global clients are used to interact with resources in global resource group only
+	globaldeployments features.DeploymentsClient
+	globalgroups      features.ResourceGroupsClient
+	globalrecordsets  dns.RecordSetsClient
+	globalaccounts    storage.AccountsClient
+
 	deployments            features.DeploymentsClient
 	groups                 features.ResourceGroupsClient
 	metricalerts           insights.MetricAlertsClient
@@ -82,6 +85,7 @@ func New(ctx context.Context, log *logrus.Entry, config *RPConfig, version strin
 		globaldeployments:      features.NewDeploymentsClient(*config.Configuration.GlobalSubscriptionID, authorizer),
 		globalgroups:           features.NewResourceGroupsClient(*config.Configuration.GlobalSubscriptionID, authorizer),
 		globalrecordsets:       dns.NewRecordSetsClient(*config.Configuration.GlobalSubscriptionID, authorizer),
+		globalaccounts:         storage.NewAccountsClient(config.Configuration.GlobalSubscriptionID, authorizer),
 		deployments:            features.NewDeploymentsClient(config.SubscriptionID, authorizer),
 		groups:                 features.NewResourceGroupsClient(config.SubscriptionID, authorizer),
 		metricalerts:           insights.NewMetricAlertsClient(config.SubscriptionID, authorizer),
