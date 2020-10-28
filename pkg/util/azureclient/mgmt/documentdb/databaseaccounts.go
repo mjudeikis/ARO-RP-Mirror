@@ -24,7 +24,9 @@ var _ DatabaseAccountsClient = &databaseAccountsClient{}
 
 // NewDatabaseAccountsClient creates a new DatabaseAccountsClient
 func NewDatabaseAccountsClient(subscriptionID string, authorizer autorest.Authorizer) DatabaseAccountsClient {
-	client := mgmtdocumentdb.NewDatabaseAccountsClient(subscriptionID)
+	// TODO(mj): Remove (subscriptionID, subscriptionID) once we revendor new SDK
+	// https://github.com/Azure/azure-sdk-for-go/issues/12534
+	client := mgmtdocumentdb.NewDatabaseAccountsClient(subscriptionID, subscriptionID)
 	client.Authorizer = authorizer
 
 	return &databaseAccountsClient{
