@@ -19,7 +19,6 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.1-0.20191028180845-3492b2aff503
 	github.com/Azure/go-autorest/tracing v0.6.0
-	github.com/BurntSushi/toml v0.3.1
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/alvaroloes/enumer v1.1.2
 	github.com/apparentlymart/go-cidr v1.1.0
@@ -49,7 +48,7 @@ require (
 	github.com/operator-framework/operator-sdk v0.19.0
 	github.com/prometheus/common v0.13.0
 	github.com/satori/go.uuid v1.2.0
-	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546
+	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/ugorji/go/codec v1.1.7
 	github.com/vbauerster/mpb v3.4.0+incompatible // indirect
