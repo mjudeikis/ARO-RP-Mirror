@@ -267,11 +267,11 @@ type ArchitectureVersion int
 // ArchitectureVersion constants
 const (
 	// ArchitectureVersionV1 - 4.3, 4.4 version of Infrastructure.
-	// * 2 loadbalancers for controll plane and workers
+	// * 2 load balancers for control plane and workers
 	// * 2 network security groups
 	ArchitectureVersionV1 ArchitectureVersion = iota
 	// ArchitectureVersionV2 - 4.5 version of Infrastructure.
-	// * 1 external loadbalancer for controll plane and workers
+	// * 1 external load balancer for control plane and workers
 	// * 1 network security group
 	ArchitectureVersionV2
 )
