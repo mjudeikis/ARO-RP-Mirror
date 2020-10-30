@@ -344,6 +344,15 @@ func (g *generator) devVnet() *arm.Resource {
 						},
 						Name: to.StringPtr("ToolingSubnet"),
 					},
+					{
+						SubnetPropertiesFormat: &mgmtnetwork.SubnetPropertiesFormat{
+							AddressPrefix: to.StringPtr("10.0.2.0/20"), // up to 10.0.15.254 with 4094 hosts
+							NetworkSecurityGroup: &mgmtnetwork.SecurityGroup{
+								ID: to.StringPtr("[resourceId('Microsoft.Network/networkSecurityGroups', 'rp-nsg')]"),
+							},
+						},
+						Name: to.StringPtr("TestingSubnet"),
+					},
 				},
 			},
 			Name:     to.StringPtr("dev-vnet"),

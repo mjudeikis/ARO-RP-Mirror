@@ -84,6 +84,16 @@
                             }
                         },
                         "name": "ToolingSubnet"
+                    },
+                    {
+                        "properties": {
+                            "addressPrefix": "10.0.2.0/20",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'rp-nsg')]",
+                                "tags": null
+                            }
+                        },
+                        "name": "TestingSubnet"
                     }
                 ]
             },
