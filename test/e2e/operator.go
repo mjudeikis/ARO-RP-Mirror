@@ -33,7 +33,7 @@ func updatedObjects(ctx context.Context, nsfilter string) ([]string, error) {
 	if len(pods.Items) != 1 {
 		return nil, fmt.Errorf("%d aro-operator-master pods found", len(pods.Items))
 	}
-	b, err := clients.Kubernetes.CoreV1().Pods("openshift-azure-operator").GetLogs(pods.Items[0].Name, &corev1.PodLogOptions{}).DoRaw(context.TODO())
+	b, err := clients.Kubernetes.CoreV1().Pods("openshift-azure-operator").GetLogs(pods.Items[0].Name, &corev1.PodLogOptions{}).DoRaw(ctx)
 	if err != nil {
 		return nil, err
 	}
