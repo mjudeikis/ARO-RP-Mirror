@@ -231,7 +231,7 @@ func (c *Cluster) createCluster(ctx context.Context, clusterName, clientID, clie
 	oc := mgmtredhatopenshift.OpenShiftCluster{
 		OpenShiftClusterProperties: &mgmtredhatopenshift.OpenShiftClusterProperties{
 			ClusterProfile: &mgmtredhatopenshift.ClusterProfile{
-				Domain:          to.StringPtr(strings.ToLower(clusterName)),
+				Domain:          to.StringPtr(strings.ToLower(clusterName[:63])),
 				ResourceGroupID: to.StringPtr(fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", c.SubscriptionID(), "aro-"+clusterName)),
 			},
 			ServicePrincipalProfile: &mgmtredhatopenshift.ServicePrincipalProfile{
