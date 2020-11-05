@@ -310,6 +310,19 @@ func TestOpenShiftClusterStaticValidateClusterProfile(t *testing.T) {
 			},
 			wantErr: "400: InvalidParameter: properties.clusterProfile.version: The provided version 'invalid' is invalid.",
 		},
+		{
+			name: "custom domain - valid",
+			modify: func(oc *OpenShiftCluster) {
+				oc.Properties.ClusterProfile.Domain = "amazingcorp.example.com"
+			},
+		},
+		{
+			name: "custom domain - too long (64+)",
+			modify: func(oc *OpenShiftCluster) {
+				oc.Properties.ClusterProfile.Domain = "themeaningoflifeiswhateveryouwantittobe42.amazingcorp.example.com"
+			},
+			wantErr: "400: InvalidParameter: properties.clusterProfile.domain: The provided domain 'themeaningoflifeiswhateveryouwantittobe42.amazingcorp.example.com' is too long.",
+		},
 	}
 
 	runTests(t, testModeCreate, createTests)

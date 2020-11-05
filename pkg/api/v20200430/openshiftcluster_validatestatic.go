@@ -135,6 +135,9 @@ func (sv *openShiftClusterStaticValidator) validateClusterProfile(path string, c
 		strings.ContainsRune(strings.TrimSuffix(cp.Domain, "."+sv.domain), '.') {
 		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".domain", "The provided domain '%s' is invalid.", cp.Domain)
 	}
+	if len(cp.Domain) > 64 {
+		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".domain", "The provided domain '%s' is too long.", cp.Domain)
+	}
 
 	if isCreate && cp.Version != version.InstallStream.Version.String() {
 		return api.NewCloudError(http.StatusBadRequest, api.CloudErrorCodeInvalidParameter, path+".version", "The provided version '%s' is invalid.", cp.Version)
