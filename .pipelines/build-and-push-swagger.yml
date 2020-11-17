@@ -1,0 +1,22 @@
+# Azure DevOps Pipeline building swagger and publish it to artifacts for
+# MSSwagger to consume
+trigger: none
+pr: none
+
+variables:
+- template: vars.yml
+
+jobs:
+- job: Build_and_push_swagger
+  pool:
+    name: ARO-CI
+
+  steps:
+  - template: ./templates/template-checkout.yml
+  - script: |
+      make generate
+      cp -a --parents swagger/redhatopenshift/resource-manager/Microsoft.RedHatOpenShift/stable/2020-04-30/redhatopenshift.json "$(Build.ArtifactStagingDirectory)"
+    displayName: Copy artifacts
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Artifacts
+    name: aro_swagger
