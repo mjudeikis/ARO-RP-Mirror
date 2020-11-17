@@ -15,7 +15,7 @@ jobs:
   - template: ./templates/template-checkout.yml
   - script: |
       make generate
-      cp -a --parents swagger/redhatopenshift/resource-manager/Microsoft.RedHatOpenShift/stable/2020-04-30/redhatopenshift.json "$(Build.ArtifactStagingDirectory)"
+      cp -a --parents swagger/* "$(Build.ArtifactStagingDirectory)"
     displayName: Copy artifacts
   - task: PublishBuildArtifacts@1
     displayName: Publish Artifacts
