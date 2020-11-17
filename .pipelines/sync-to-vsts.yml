@@ -1,0 +1,20 @@
+# Azure DevOps Pipeline building swagger and publish it to artifacts for
+# MSSwagger to consume
+trigger: none
+pr: none
+
+variables:
+- template: vars.yml
+
+jobs:
+- job: Sync_to_vsts_mirror
+  pool:
+    name: ARO-CI
+
+  steps:
+  - template: ./templates/template-checkout.yml
+  - script: |
+      git remote add mirror $(mirror-location)
+      git fetch --all
+      git push mirror --all
+    displayName: Mirror ARO-RP
