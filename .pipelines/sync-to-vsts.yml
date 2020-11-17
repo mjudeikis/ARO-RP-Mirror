@@ -15,6 +15,6 @@ jobs:
   - template: ./templates/template-checkout.yml
   - script: |
       git remote add mirror $(mirror-location)
-      git fetch --all
+      git fetch origin
       git push mirror --all
     displayName: Mirror ARO-RP
